@@ -18,7 +18,7 @@
             ParentId = parentId;
             GuildId = guildId;
             Name = name;
-            Type = type;
+            Type = type; // int into enum
         }
 
         public override string ToString() => Name;

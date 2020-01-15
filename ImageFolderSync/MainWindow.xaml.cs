@@ -597,19 +597,19 @@ namespace ImageFolderSync
                     item.Selected += OnServerSelected;
 
                     listbox.Items.Add(item);
-                    await Task.Delay(75);
+                    await Task.Delay(20); // not needed, but visualizing looks cool
                 }
+
             } 
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
 
-
-            listbox.Items.SortDescriptions.Add(new System.ComponentModel.SortDescription("Content", System.ComponentModel.ListSortDirection.Ascending));
+            listbox.Items.SortDescriptions.Add(new SortDescription("Content", ListSortDirection.Ascending));
             listbox.IsEnabled = true;
 
-            await Task.Delay(2000);
+            //await Task.Delay(2000);
             this._loadServersButton.IsEnabled = true;
         }
 
@@ -649,12 +649,12 @@ namespace ImageFolderSync
             ListBox listbox = this._channelList;
             listbox.Items.Clear();
 
+            // order by .ParentId, aka by category
             var channelList = channels.ToList().OrderBy(x => x.ParentId).ToList();
 
             foreach (var ch in channelList)
             {
-
-                if (ch.Type != DiscordClasses.ChannelType.GuildTextChat)
+                if (ch.Type != ChannelType.GuildTextChat)
                 {
                     // skip, we list only text channels
                     continue;

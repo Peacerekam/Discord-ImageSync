@@ -25,13 +25,13 @@ namespace ImageFolderSync
             // Discord seems to always respond 429 on our first request with unreasonable wait time (10+ minutes).
             // For that reason the policy will start respecting their retry-after header only after Nth failed response.
             _httpPolicy = Policy
-                .HandleResult<HttpResponseMessage>(m => m.StatusCode == (HttpStatusCode)422) // HttpStatusCode.TooManyRequests === (HttpStatusCode)422
+                .HandleResult<HttpResponseMessage>(m => m.StatusCode == HttpStatusCode.TooManyRequests)
                 .OrResult(m => m.StatusCode >= HttpStatusCode.InternalServerError)
                 .WaitAndRetryAsync(6,
                     (i, result, ctx) =>
                     {
                         if (i <= 3)
-                            return TimeSpan.FromSeconds(2 * i);
+                            return TimeSpan.FromSeconds(1 * i);
 
                         if (i <= 5)
                             return TimeSpan.FromSeconds(5 * i);
@@ -87,6 +87,7 @@ namespace ImageFolderSync
         public async Task<JToken> GetSelfAsync(string token)
         {
             var response = await GetApiResponseAsync(token, $"users/@me");
+            // cant be bothered to parse it, i only need the username
 
             return response;
         }
