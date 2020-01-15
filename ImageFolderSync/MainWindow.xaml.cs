@@ -592,7 +592,7 @@ namespace ImageFolderSync
 
             ListBox listbox = this._serverList;
             listbox.Items.Clear();
-            listbox.IsEnabled = false;
+            //listbox.IsEnabled = false;
 
             try 
             {
@@ -625,7 +625,7 @@ namespace ImageFolderSync
 
 
             listbox.Items.SortDescriptions.Add(new SortDescription("Content", ListSortDirection.Ascending));
-            listbox.IsEnabled = true;
+            //listbox.IsEnabled = true;
 
             //await Task.Delay(2000);
             this._loadServersButton.IsEnabled = true;
