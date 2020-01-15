@@ -596,6 +596,19 @@ namespace ImageFolderSync
                     item.SetValue(id, guild.Id);
                     item.Selected += OnServerSelected;
 
+
+
+                    ComboBoxItem cbi = new ComboBoxItem();
+                    Image img = new Image();
+                    TextBlock tb = new TextBlock();
+
+                    cbi.Content = guild.Name;
+                    cbi.Tag = guild.Id;
+                    
+                    _guildComboBox.Items.Add(cbi);
+
+
+
                     listbox.Items.Add(item);
                     await Task.Delay(20); // not needed, but visualizing looks cool
                 }
