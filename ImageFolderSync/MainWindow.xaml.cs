@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,15 +12,17 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System.Net;
 using System.ComponentModel;
 using ImageFolderSync.DiscordClasses;
-using System.IO;
 using ImageFolderSync.Helpers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Threading;
+using System.Reflection;
+using System.Diagnostics;
+using System.Runtime.Loader;
 
 namespace ImageFolderSync
 {
@@ -31,18 +34,25 @@ namespace ImageFolderSync
         public ConfigData config;
         public ChannelConfig chConfig;
 
+        public Boolean cancelSync = false;
+
         public static readonly DependencyProperty id = DependencyProperty.Register("Id", typeof(string), typeof(ListBoxItem));
+
+        // later make a listbox with this, so you can add or remove extensions
+        public string[] mediaExt = { "png", "gif", "jpg", "jpeg", "mp4", "webm", "webp" };
 
         public MainWindow()
         {
-            InitializeComponent();
-
             HandleConfig();
+
+            InitializeComponent();
 
             UpdateFolderList();
 
             Whomst();
+
         }
+
 
         public async void Whomst()
         {
@@ -52,18 +62,18 @@ namespace ImageFolderSync
                 JToken res = await d.GetSelfAsync(config.Token);
 
                 _windowMessage.Text = "Currently logged in as:   " + res["username"];
+                this._loadServersButton.IsEnabled = true;
             }
             catch
             {
-                _windowMessage.Text = "Invalid token! Check config.json";
+                _windowMessage.Text = "Invalid token! Scan for tokens or update config.json & restart app";
             }
         }
 
         public void SelectAccount(object sender, RoutedEventArgs e)
         {
-            ListBoxItem? accountItem = _accList.SelectedItem as ListBoxItem;
-
-            if (accountItem == null) {
+            if (!(_accList.SelectedItem is ListBoxItem accountItem))
+            {
                 return;
             }
 
@@ -95,24 +105,30 @@ namespace ImageFolderSync
             for (int i = 0; i < files.Length; i++)
             {
                 string whole = File.ReadAllText(files[i]);
-                int aa = whole.IndexOf("oken");
-                int bb = whole.Length - 1;
+                int howMuch = (int)(whole.Length * 0.8);
+                string chunk = whole.Substring(howMuch, whole.Length - howMuch - 2);
+                int aa = chunk.IndexOf("oken");
+                int bb = chunk.Length - 1;
 
-                if (aa == -1) {
+                //MessageBox.Show("aa: " + aa + "\nbb: " + bb);
+
+                if (aa == -1)
+                {
+                    //MessageBox.Show("aa wynosi -1 wiec chuj");
                     continue;
                 }
 
-                string part = whole.Substring(aa, bb - aa);
+                string part = chunk.Substring(aa, bb - aa);
                 string token = part.Split("\"")[1];
+
+                //MessageBox.Show("token: " + token);
 
                 try
                 {
                     DiscordAPI d = new DiscordAPI();
-                    //JToken res = await d.GetSelfAsync(token);
-
                     JToken res = await d.GetSelfAsync(token);
 
-                    //MessageBox.Show("Found token for: " + token.Substring(0, 10) + "... for: " + res["username"]);
+                    //MessageBox.Show("User: " + res["username"]);
 
                     ListBoxItem item = new ListBoxItem();
                     item.Content = res["username"];
@@ -122,11 +138,11 @@ namespace ImageFolderSync
 
                     listbox.Items.Add(item);
                 }
-                catch 
+                catch
                 {
-                    //MessageBox.Show("Invalid Token: " + token.Substring(0, 15) + "(...)" );
+                    MessageBox.Show("Invalid Token: " + token.Substring(0, 15) + "(...)" );
                 }
-                
+
             }
         }
 
@@ -137,13 +153,15 @@ namespace ImageFolderSync
 
                 ConfigData newConfig = new ConfigData()
                 {
-                    Token = "YOUR TOKEN GOES HERE"
+                    Token = "YOUR_TOKEN_GOES_HERE"
                 };
 
                 string json = JsonConvert.SerializeObject(newConfig, Formatting.Indented);
                 byte[] fileContent = Encoding.UTF8.GetBytes(json);
 
                 Atomic.WriteFile("config.json", new MemoryStream(fileContent));
+
+                config = JsonConvert.DeserializeObject<ConfigData>(File.ReadAllText("config.json"));
             }
             else
             {
@@ -174,8 +192,9 @@ namespace ImageFolderSync
             foreach (var ch in chConfig.list)
             {
                 ListBoxItem item = new ListBoxItem();
-                item.Content = $"{ch.Value.GuildName}\n{ch.Value.ChannelName}\n{ch.Value.SavePath}\nStatus: ---";
+                item.Content = $"{ch.Value.GuildName}\n{ch.Value.ChannelName}\n{ch.Value.SavePath}\nDownloaded Images: {ch.Value.ImagesSaved}";
                 item.Selected += OnFolderSelected;
+                item.Unselected += OnFolderUnselected;
                 item.SetValue(id, ch.Key);
                 item.Height = 75;
 
@@ -204,7 +223,7 @@ namespace ImageFolderSync
                     ChannelId = channelID,
                     LastMsgChecked = null,
                     SavePath = this._path.Text,
-                    //ImagesSaved = 0
+                    ImagesSaved = 0
                 });
             }
             else
@@ -217,7 +236,7 @@ namespace ImageFolderSync
                     ChannelId = channelID,
                     LastMsgChecked = null,
                     SavePath = this._path.Text,
-                    //ImagesSaved = 0
+                    ImagesSaved = 0
                 };
             }
 
@@ -231,27 +250,57 @@ namespace ImageFolderSync
 
         }
 
-        public async void SyncFolder(object sender, RoutedEventArgs e)
+        public Boolean IsDownloadable(string u)
         {
+
+            for (int i = 0; i < mediaExt.Length; i++)
+            {
+                if (u.Contains($".{mediaExt[i]}")) // .png .gif .jpg   and so on
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public void CancelSync(object sender, RoutedEventArgs e)
+        {
+            cancelSync = true;
+        }
+
+        public async void SyncPress(object sender, RoutedEventArgs e)
+        {
+
+            this._cancelSyncButton.IsEnabled = true;
             this._syncFolderButton.IsEnabled = false;
+            this._loadServersButton.IsEnabled = false;
             this._browseFolderButton.IsEnabled = false;
             this._channelList.IsEnabled = false;
             this._serverList.IsEnabled = false;
-            this._loadServersButton.IsEnabled = false;
+            //this._folderList.IsEnabled = false;
 
-            ListBoxItem channelItem = _folderList.SelectedItem as ListBoxItem;
-            string channelID = channelItem.GetValue(id).ToString();
+            string? channelID = (_folderList.SelectedItem is ListBoxItem folderItem) ? folderItem.GetValue(id).ToString() : null;
+            if (channelID == null) return;
 
             ChannelConfig.Values thisConfig = chConfig.list[channelID];
 
             //DetectToken();
 
-            DiscordAPI d = new DiscordAPI();
-
-            var messages = d.GetMessagesAsync(config.Token, thisConfig.ChannelId, null, thisConfig.LastMsgChecked); // this._token.Text
+            if (!Directory.Exists(thisConfig.SavePath))
+            {
+                MessageBox.Show("Couldn't find the save path.");
+                return;
+            }
 
             WebClient wc = new WebClient();
             wc.UseDefaultCredentials = true;
+
+
+            DiscordAPI d = new DiscordAPI();
+            var messages = d.GetMessagesAsync(config.Token, thisConfig.ChannelId, null, thisConfig.LastMsgChecked); // this._token.Text
+
+            //var messages = d.GetMessagesAsync(config.Token, thisConfig.ChannelId, null, thisConfig.LastMsgChecked); // this._token.Text
 
             int msgCount = 0;
             int mediaCount = 0;
@@ -259,6 +308,22 @@ namespace ImageFolderSync
 
             await foreach (var msg in messages)
             {
+                if (cancelSync)
+                {
+                    MessageBox.Show($"Canceled / Paused");
+                    this._cancelSyncButton.IsEnabled = false;
+                    this._syncFolderButton.IsEnabled = false;
+                    this._loadServersButton.IsEnabled = true;
+                    this._browseFolderButton.IsEnabled = true;
+                    this._channelList.IsEnabled = true;
+                    this._serverList.IsEnabled = true;
+                    //this._folderList.IsEnabled = true;
+                    this._folderList.UnselectAll();
+
+                    cancelSync = false;
+                    return;
+                }
+
                 msgCount++;
 
                 if (msg.Embeds.Count > 0)
@@ -266,46 +331,104 @@ namespace ImageFolderSync
 
                     for (int i = 0; i < msg.Embeds.Count; i++)
                     {
-                        if (msg.Embeds[i].Image == null) // && msg.Embeds[i].Thumbnail == null
+
+                        string baseUrl = "";
+
+                        if (msg.Embeds[i].Image != null)
+                        {
+                            baseUrl = msg.Embeds[i].Image.Url;
+                        }
+                        else if (msg.Embeds[i].Video != null)
+                        {
+                            baseUrl = msg.Embeds[i].Video.Url;
+                        }
+                        else if (msg.Embeds[i].Thumbnail != null)
+                        {
+                            baseUrl = msg.Embeds[i].Thumbnail.Url;
+                        }
+                        else 
                         {
                             continue;
                         }
 
-                        //string[] splitFilename = msg.Embeds[i].Image.Url.Split("/")[^1].Split(".");
-                        string[] splitFilename = msg.Embeds[i].Image.Url.Split("/")[^1].Split(".");
-                        string extension = splitFilename[^1]; // last array element
-                        string filename = splitFilename[^2];
+                        if (!IsDownloadable(baseUrl))
+                        {
+                            continue;
+                        }
+
+
+                        string[] splitFilename = baseUrl.Split("/")[^1].Split(".");
+                        string extension = splitFilename[^1].Split(":")[0].Split("?")[0]; // last array element + anti twitter garbage + anti resize garbage
+                        string filename = string.Join(".", splitFilename.Take(splitFilename.Count() - 1));
                         string dlPath = string.Format(@"{0}/{1}.{2}", thisConfig.SavePath, filename, extension);
 
-                        int index = 0;
+                        int fileIndex = 0;
 
-                        while (File.Exists(dlPath))
+                        while (File.Exists(dlPath) && new FileInfo(dlPath).Length > 0)
                         {
-                            index++;
-
-                            dlPath = string.Format(@"{0}/{1}_{3}.{2}", thisConfig.SavePath, filename, extension, index);
+                            fileIndex++;
+                            dlPath = string.Format(@"{0}/{1}_duplicate_{3}.{2}", thisConfig.SavePath, filename, extension, fileIndex);
                         }
 
-                        try {
-                            await wc.DownloadFileTaskAsync(new Uri(msg.Embeds[i].Image.Url), dlPath);
+                        if (msgCount == 1 && thisConfig.LastMsgChecked != null && fileIndex > 0) continue;
+                        // special case if its duplicate on first dl message, should happen only when attempting to do already synced channel
+                        // since the download is Atomic and last msg id is updated AFTER download, it means we have the image from last msg id
+                        // (UNLESS ITS OUT FIRST TIME - LastMsgChecked null check)
+
+                        try
+                        {
+
+                            baseUrl = baseUrl.Split("?")[0].Split("%3A")[0]; // anti resize garbage
+
+                            await Atomic.DownloadFile(wc, dlPath, baseUrl);
                             mediaCount++;
+
+                            chConfig.UpdateLastMessage(channelID, msg.Id, 1);
+
+                            string json = JsonConvert.SerializeObject(chConfig, Formatting.Indented);
+                            byte[] fileContent = Encoding.UTF8.GetBytes(json);
+
+                            Atomic.OverwriteFile("channels.json", new MemoryStream(fileContent), "channels.json.backup");
+                            UpdateFolderList();
                         }
-                        catch
+                        catch (Exception ex)
                         {
+                            //_windowMessage.Text = "111: " + ex.Message;
                             try
                             {
-                                await wc.DownloadFileTaskAsync(new Uri(msg.Embeds[i].Image.ProxyUrl.Split("?")[0]), dlPath);
+                                string proxyDlLink = "";
+
+                                if (msg.Embeds[i].Image != null)
+                                {
+                                    proxyDlLink = msg.Embeds[i].Image.ProxyUrl.Split("?")[0].Split("%3A")[0];
+                                }
+                                else if (msg.Embeds[i].Video != null)
+                                {
+                                    proxyDlLink = msg.Embeds[i].Video.ProxyUrl.Split("?")[0].Split("%3A")[0];
+                                }
+                                else if (msg.Embeds[i].Thumbnail != null)
+                                {
+                                    proxyDlLink = msg.Embeds[i].Thumbnail.ProxyUrl.Split("?")[0].Split("%3A")[0];
+                                }
+                                else
+                                {
+                                    continue;
+                                }
+
+                                await Atomic.DownloadFile(wc, dlPath, proxyDlLink);
                                 mediaCount++;
 
-                                chConfig.UpdateLastMessage(channelID, msg.Id);
+                                chConfig.UpdateLastMessage(channelID, msg.Id, 1);
 
                                 string json = JsonConvert.SerializeObject(chConfig, Formatting.Indented);
                                 byte[] fileContent = Encoding.UTF8.GetBytes(json);
 
                                 Atomic.OverwriteFile("channels.json", new MemoryStream(fileContent), "channels.json.backup");
+                                UpdateFolderList();
                             }
-                            catch (Exception ex)
+                            catch (Exception exc)
                             {
+                                //_windowMessage.Text = "222: " + exc.Message;
                                 File.Delete(dlPath);
                                 failCount++;
                             }
@@ -320,30 +443,39 @@ namespace ImageFolderSync
                     {
 
                         string dlPath = string.Format(@"{0}/{1}", thisConfig.SavePath, msg.Attachments[i].FileName);
+                        string baseUrl = msg.Attachments[i].Url;
 
-                        int index = 0;
+                        if (!IsDownloadable(baseUrl))
+                        {
+                            continue;
+                        }
+
+                        int fileIndex = 0;
 
                         while (File.Exists(dlPath))
                         {
-                            index++;
+                            fileIndex++;
                             string[] splitFilename = msg.Attachments[i].FileName.Split(".");
                             string extension = "." + splitFilename[^1]; // last array element
                             string filename = msg.Attachments[i].FileName.Replace(extension, "");
 
-                            dlPath = string.Format(@"{0}/{1}_{3}{2}", thisConfig.SavePath, filename, extension, index);
+                            dlPath = string.Format(@"{0}/{1}_{3}{2}", thisConfig.SavePath, filename, extension, fileIndex);
                         }
 
                         try
                         {
-                            await wc.DownloadFileTaskAsync(new Uri(msg.Attachments[i].Url), dlPath);
+                            baseUrl = baseUrl.Split("?")[0].Split("%3A")[0];
+
+                            await Atomic.DownloadFile(wc, dlPath, baseUrl);
                             mediaCount++;
 
-                            chConfig.UpdateLastMessage(channelID, msg.Id);
+                            chConfig.UpdateLastMessage(channelID, msg.Id, 1);
 
                             string json = JsonConvert.SerializeObject(chConfig, Formatting.Indented);
                             byte[] fileContent = Encoding.UTF8.GetBytes(json);
 
                             Atomic.OverwriteFile("channels.json", new MemoryStream(fileContent), "channels.json.backup");
+                            UpdateFolderList();
 
                         }
                         catch (Exception ex)
@@ -356,12 +488,24 @@ namespace ImageFolderSync
 
             }
 
-            MessageBox.Show($"Downloaded {mediaCount} media from {msgCount} messages.\nFailed to download: {failCount} (most likely dead gelbooru links)");
-            this._syncFolderButton.IsEnabled = true;
+            if (mediaCount == 0)
+            {
+                MessageBox.Show($"Couldn't find any new images to download\nThis means you're most likely up to date");
+            } 
+            else
+            {
+                MessageBox.Show($"Downloaded {mediaCount} media from {msgCount} messages.\nFailed to download: {failCount} (e.g. dead gelbooru links)");
+            }
+
+            this._cancelSyncButton.IsEnabled = false;
+            //this._syncFolderButton.IsEnabled = true; // that one is bad, cause when youre finished, you dont have any folder selected
+            this._loadServersButton.IsEnabled = true;
             this._browseFolderButton.IsEnabled = true;
             this._channelList.IsEnabled = true;
             this._serverList.IsEnabled = true;
-            this._loadServersButton.IsEnabled = true;
+            //this._folderList.IsEnabled = true;
+            this._folderList.UnselectAll();
+
         }
 
         public void BrowseFolders(object sender, RoutedEventArgs e)
@@ -374,12 +518,12 @@ namespace ImageFolderSync
 
             if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                
+
                 if (null != this._channelList.SelectedItem)
                 {
                     this._addChannelButton.IsEnabled = true;
                 }
-                
+
                 this._path.Text = dialog.FileName;
             }
 
@@ -408,10 +552,7 @@ namespace ImageFolderSync
             config = JsonConvert.DeserializeObject<ConfigData>(File.ReadAllText("config.json"));
 
             DiscordAPI d = new DiscordAPI();
-
-            //          await?
             var guilds = d.GetUserGuildsAsync(config.Token); // this._token.Text
-
 
             ListBox listbox = this._serverList;
             listbox.Items.Clear();
@@ -439,15 +580,34 @@ namespace ImageFolderSync
         {
             this._syncFolderButton.IsEnabled = true;
         }
+        
+        private void OnFolderUnselected(object sender, RoutedEventArgs e)
+        {
+            if (!(_folderList.SelectedItem is ListBoxItem folder))
+            {
+                this._syncFolderButton.IsEnabled = false;
+            }
+        }
 
         private async void OnServerSelected(object sender, RoutedEventArgs e)
         {
             ListBoxItem lbi = e.Source as ListBoxItem;
-            
+
             //MessageBox.Show(lbi.Content.ToString().Split(" | ")[0]);
 
-            DiscordAPI d = new DiscordAPI();
-            var channels = await d.GetGuildChannelsAsync(config.Token, lbi.GetValue(id).ToString()); // this._token.Text
+            IReadOnlyList<Channel> channels;
+
+            try
+            {
+                DiscordAPI d = new DiscordAPI();
+                channels = await d.GetGuildChannelsAsync(config.Token, lbi.GetValue(id).ToString()); // this._token.Text
+            }
+            catch
+            {
+                MessageBox.Show("Something went wrong (token?)");
+                return;
+            }
+
 
             ListBox listbox = this._channelList;
             listbox.Items.Clear();
@@ -479,13 +639,14 @@ namespace ImageFolderSync
                 //await Task.Delay(50);
             }
         }
+        
         private void OnChannelSelected(object sender, RoutedEventArgs e)
         {
             if (this._path.Text != "")
             {
                 this._addChannelButton.IsEnabled = true;
             }
-            
+
         }
     }
 }

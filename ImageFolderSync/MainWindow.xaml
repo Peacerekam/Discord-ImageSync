@@ -6,7 +6,6 @@
         xmlns:local="clr-namespace:ImageFolderSync"
         mc:Ignorable="d"
         
-        ResizeMode="NoResize"
         Title="Discord Image Sync" Height="600" Width="1200"
         WindowStartupLocation="CenterScreen"
         Background="Thistle"
@@ -36,26 +35,37 @@
             <ColumnDefinition Width = "*" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Name="_windowMessage" Text="xaaaaaaaaaaaaaaa" Grid.ColumnSpan="2"
-                   Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center"/>
+        <TextBlock Name="_windowMessage" Text="If you see this message, something is wrong." Grid.ColumnSpan="3" 
+                   Grid.Row="2" Grid.Column="0" Margin="15,5,0,0" Grid.RowSpan="1" HorizontalAlignment="Left"/>
 
         <TextBox Name = "_path" IsEnabled="False" Grid.Row="2" Grid.Column = "3" Grid.ColumnSpan="3"  
                  Text = "{Binding DebugText, Mode = TwoWay}" Margin="10,5,10,5" />
 
-        <Button  Name = "_loadServersButton" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"  
-                 Content = "Load Server List" Click="LoadServers" Margin = "50,5"/>
+
 
         <Button  Name = "_scanTokens" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="1"  
                  Content = "Scan Tokens" Click="DetectToken" Margin = "20,5"/>
-        
+
+        <Button  Name = "_loadServersButton" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" IsEnabled="False"
+                 Content = "Load Server List" Click="LoadServers" Margin = "50,5"/>
+
+
+
         <Button  Name = "_browseFolderButton" Grid.Row="3" Grid.ColumnSpan="2"  Grid.Column = "3" 
                  Content = "BrowseFolders" Click="BrowseFolders" Margin = "70,5"/>
 
         <Button  Name = "_addChannelButton" Grid.Row="3" Grid.ColumnSpan="2"  Grid.Column = "4" 
                  Content = "Add Channel" Click="AddChannel" IsEnabled="False" Margin = "70,5"/>
-        
-        <Button  Name = "_syncFolderButton" Grid.Row="3" Grid.ColumnSpan="3"  Grid.Column = "6" 
-                 Content = "Sync Selected" Click="SyncFolder" IsEnabled="False" Margin = "100,5,100,5"/>
+
+
+
+        <Button  Name = "_cancelSyncButton" Grid.Row="3" Grid.ColumnSpan="2"  Grid.Column = "6" 
+                 Content = "Cancel/Pause" Click="CancelSync" IsEnabled="False" Margin = "70,5"/>
+
+        <Button  Name = "_syncFolderButton" Grid.Row="3" Grid.ColumnSpan="2"  Grid.Column = "7" 
+                 Content = "Sync Selected" Click="SyncPress" IsEnabled="False" Margin = "70,5"/>
+
+
 
         <ListBox x:Name="_serverList" Grid.Row="4" Grid.RowSpan="3" 
                  Grid.Column = "1" Grid.ColumnSpan="2"  
@@ -76,7 +86,7 @@
                  Grid.Column = "0" Grid.ColumnSpan="1"  
                  SelectionMode="Single" Margin="10,10" >
         </ListBox>
-        
+
         <Button  Name = "_selectAccButton" Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="1"  
                  Content = "Select Account" Click="SelectAccount" Margin = "20,5"/>
     </Grid>

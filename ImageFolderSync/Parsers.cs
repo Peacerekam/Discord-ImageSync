@@ -55,7 +55,10 @@ namespace ImageFolderSync
             // Get image
             var image = json["image"] != null ? ParseEmbedImage(json["image"]!) : null;
 
-            return new Embed(url, timestamp, thumbnail, image);
+            // Get video
+            var video = json["video"] != null ? ParseEmbedImage(json["video"]!) : null;
+
+            return new Embed(url, timestamp, thumbnail, image, video);
         }
 
         private Message ParseMessage(JToken json)

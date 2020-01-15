@@ -26,15 +26,18 @@ namespace ImageFolderSync.DiscordClasses
 
         public EmbedImage? Image { get; }
 
+        public EmbedImage? Video { get; }
+
         //public EmbedFooter? Footer { get; }
 
-        public Embed(string? url, DateTimeOffset? timestamp, EmbedImage? thumbnail, EmbedImage? image)
+        public Embed(string? url, DateTimeOffset? timestamp, EmbedImage? thumbnail, EmbedImage? image, EmbedImage? video)
         {
             //Title = title;
             Url = url;
             Timestamp = timestamp;
             Thumbnail = thumbnail;
             Image = image;
+            Video = video;
         }
 
     }
