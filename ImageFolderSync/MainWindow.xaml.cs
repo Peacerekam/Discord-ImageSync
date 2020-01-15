@@ -23,6 +23,8 @@ using System.Threading;
 using System.Reflection;
 using System.Diagnostics;
 using System.Runtime.Loader;
+using System.Collections.ObjectModel;
+using System.Windows.Interop;
 
 namespace ImageFolderSync
 {
@@ -41,8 +43,13 @@ namespace ImageFolderSync
         // later make a listbox with this, so you can add or remove extensions
         public string[] mediaExt = { "png", "gif", "jpg", "jpeg", "mp4", "webm", "webp" };
 
+        public ObservableCollection<ImageTextPair> GuildsComboBox { get; set; }
+
         public MainWindow()
         {
+            this.DataContext = this;
+            GuildsComboBox = new ObservableCollection<ImageTextPair>();
+
             HandleConfig();
 
             InitializeComponent();
@@ -596,16 +603,13 @@ namespace ImageFolderSync
                     item.SetValue(id, guild.Id);
                     item.Selected += OnServerSelected;
 
+                    ImageTextPair itp = new ImageTextPair{
+                        Image = new BitmapImage( new Uri(guild.IconUrl) ),
+                        Text = guild.Name
+                    };
 
-
-                    ComboBoxItem cbi = new ComboBoxItem();
-                    Image img = new Image();
-                    TextBlock tb = new TextBlock();
-
-                    cbi.Content = guild.Name;
-                    cbi.Tag = guild.Id;
-                    
-                    _guildComboBox.Items.Add(cbi);
+                    GuildsComboBox.Add(itp);
+                    //GuildsComboBox = new ObservableCollection<ImageTextPair>(GuildsComboBox.OrderBy(i => i.Text));
 
 
 
@@ -618,6 +622,7 @@ namespace ImageFolderSync
             {
                 MessageBox.Show(ex.Message);
             }
+
 
             listbox.Items.SortDescriptions.Add(new SortDescription("Content", ListSortDirection.Ascending));
             listbox.IsEnabled = true;

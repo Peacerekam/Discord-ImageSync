@@ -35,26 +35,19 @@
             <ColumnDefinition Width = "*" />
         </Grid.ColumnDefinitions>
 
-        <StackPanel Margin="10">
-            <ComboBox Name="_guildComboBox">
-                <ComboBoxItem Name="_cbi">
-                    <StackPanel Orientation="Horizontal">
-                        <Image Source="" />
-                        <TextBlock Foreground="Red">Red</TextBlock>
-                    </StackPanel>
-                </ComboBoxItem>
-                <ComboBoxItem>
-                    <StackPanel Orientation="Horizontal">
-                        <Image Source="" />
-                        <TextBlock Foreground="Green">Green</TextBlock>
-                    </StackPanel>
-                </ComboBoxItem>
-                <ComboBoxItem>
-                    <StackPanel Orientation="Horizontal">
-                        <Image Source="" />
-                        <TextBlock Foreground="Blue">Blue</TextBlock>
-                    </StackPanel>
-                </ComboBoxItem>
+        <StackPanel Margin="5"
+                    Grid.Row="0"
+                    Grid.Column="0" Grid.ColumnSpan="2"
+                    >
+            <ComboBox ItemsSource="{Binding GuildsComboBox}" Height="25">
+                <ComboBox.ItemTemplate >
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="{Binding Image}" Width="25" Height="25"/>
+                            <TextBlock Margin="7,0,0,0" Text="{Binding Text}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
             </ComboBox>
         </StackPanel>
 
