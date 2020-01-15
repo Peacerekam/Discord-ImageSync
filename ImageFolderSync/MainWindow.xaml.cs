@@ -293,7 +293,7 @@ namespace ImageFolderSync
             this._browseFolderButton.IsEnabled = false;
             this._channelList.IsEnabled = false;
             this._serverList.IsEnabled = false;
-            //this._folderList.IsEnabled = false;
+            this._folderList.IsEnabled = false;
 
             string? channelID = (_folderList.SelectedItem is ListBoxItem folderItem) ? folderItem.GetValue(id).ToString() : null;
             if (channelID == null) return;
@@ -334,7 +334,7 @@ namespace ImageFolderSync
                         this._browseFolderButton.IsEnabled = true;
                         this._channelList.IsEnabled = true;
                         this._serverList.IsEnabled = true;
-                        //this._folderList.IsEnabled = true;
+                        this._folderList.IsEnabled = true;
                         this._folderList.UnselectAll();
 
                         cancelSync = false;
@@ -532,7 +532,7 @@ namespace ImageFolderSync
             this._browseFolderButton.IsEnabled = true;
             this._channelList.IsEnabled = true;
             this._serverList.IsEnabled = true;
-            //this._folderList.IsEnabled = true;
+            this._folderList.IsEnabled = true;
             this._folderList.UnselectAll();
 
         }
