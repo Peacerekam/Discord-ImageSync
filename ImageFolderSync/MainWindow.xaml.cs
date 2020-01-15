@@ -140,7 +140,7 @@ namespace ImageFolderSync
                 }
                 catch
                 {
-                    MessageBox.Show("Invalid Token: " + token.Substring(0, 15) + "(...)" );
+                    MessageBox.Show("Found invalid Token: " + token );
                 }
 
             }
@@ -269,6 +269,21 @@ namespace ImageFolderSync
             cancelSync = true;
         }
 
+        public string RemoveInvalids(string p)
+        {
+            char[] invalidChars = Path.GetInvalidFileNameChars();
+
+            if (p.IndexOfAny(invalidChars) > 0)
+            {
+                for (int i = 0; i < invalidChars.Length; i++)
+                {
+                    p = p.Replace(invalidChars[i], '-');
+                }
+            }
+
+            return p;
+        }
+
         public async void SyncPress(object sender, RoutedEventArgs e)
         {
 
@@ -364,8 +379,9 @@ namespace ImageFolderSync
 
                             string[] splitFilename = baseUrl.Split("/")[^1].Split(".");
                             string extension = splitFilename[^1].Split(":")[0].Split("?")[0]; // last array element + anti twitter garbage + anti resize garbage
-                            string filename = string.Join(".", splitFilename.Take(splitFilename.Count() - 1));
+                            string filename = RemoveInvalids(string.Join(".", splitFilename.Take(splitFilename.Count() - 1)));
                             string dlPath = string.Format(@"{0}/{1}.{2}", thisConfig.SavePath, filename, extension);
+
 
                             int fileIndex = 0;
 
@@ -447,7 +463,8 @@ namespace ImageFolderSync
                         for (int i = 0; i < msg.Attachments.Count; i++)
                         {
 
-                            string dlPath = string.Format(@"{0}/{1}", thisConfig.SavePath, msg.Attachments[i].FileName);
+                            string dlPath = string.Format(@"{0}/{1}", thisConfig.SavePath, RemoveInvalids(msg.Attachments[i].FileName));
+
                             string baseUrl = msg.Attachments[i].Url;
 
                             if (!IsDownloadable(baseUrl))
@@ -462,7 +479,7 @@ namespace ImageFolderSync
                                 fileIndex++;
                                 string[] splitFilename = msg.Attachments[i].FileName.Split(".");
                                 string extension = "." + splitFilename[^1]; // last array element
-                                string filename = msg.Attachments[i].FileName.Replace(extension, "");
+                                string filename = RemoveInvalids(msg.Attachments[i].FileName.Replace(extension, ""));
 
                                 dlPath = string.Format(@"{0}/{1}_{3}{2}", thisConfig.SavePath, filename, extension, fileIndex);
                             }
