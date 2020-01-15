@@ -306,116 +306,86 @@ namespace ImageFolderSync
             int mediaCount = 0;
             int failCount = 0;
 
-            await foreach (var msg in messages)
+            try 
             {
-                if (cancelSync)
+                await foreach (var msg in messages)
                 {
-                    MessageBox.Show($"Canceled / Paused");
-                    this._cancelSyncButton.IsEnabled = false;
-                    this._syncFolderButton.IsEnabled = false;
-                    this._loadServersButton.IsEnabled = true;
-                    this._browseFolderButton.IsEnabled = true;
-                    this._channelList.IsEnabled = true;
-                    this._serverList.IsEnabled = true;
-                    //this._folderList.IsEnabled = true;
-                    this._folderList.UnselectAll();
+                    if (cancelSync)
+                    {
+                        MessageBox.Show($"Canceled / Paused");
+                        this._cancelSyncButton.IsEnabled = false;
+                        this._syncFolderButton.IsEnabled = false;
+                        this._loadServersButton.IsEnabled = true;
+                        this._browseFolderButton.IsEnabled = true;
+                        this._channelList.IsEnabled = true;
+                        this._serverList.IsEnabled = true;
+                        //this._folderList.IsEnabled = true;
+                        this._folderList.UnselectAll();
 
-                    cancelSync = false;
-                    return;
-                }
+                        cancelSync = false;
+                        return;
+                    }
 
-                msgCount++;
+                    msgCount++;
 
-                if (msg.Embeds.Count > 0)
-                {
-
-                    for (int i = 0; i < msg.Embeds.Count; i++)
+                    if (msg.Embeds.Count > 0)
                     {
 
-                        string baseUrl = "";
-
-                        if (msg.Embeds[i].Image != null)
-                        {
-                            baseUrl = msg.Embeds[i].Image.Url;
-                        }
-                        else if (msg.Embeds[i].Video != null)
-                        {
-                            baseUrl = msg.Embeds[i].Video.Url;
-                        }
-                        else if (msg.Embeds[i].Thumbnail != null)
-                        {
-                            baseUrl = msg.Embeds[i].Thumbnail.Url;
-                        }
-                        else 
-                        {
-                            continue;
-                        }
-
-                        if (!IsDownloadable(baseUrl))
-                        {
-                            continue;
-                        }
-
-
-                        string[] splitFilename = baseUrl.Split("/")[^1].Split(".");
-                        string extension = splitFilename[^1].Split(":")[0].Split("?")[0]; // last array element + anti twitter garbage + anti resize garbage
-                        string filename = string.Join(".", splitFilename.Take(splitFilename.Count() - 1));
-                        string dlPath = string.Format(@"{0}/{1}.{2}", thisConfig.SavePath, filename, extension);
-
-                        int fileIndex = 0;
-
-                        while (File.Exists(dlPath) && new FileInfo(dlPath).Length > 0)
-                        {
-                            fileIndex++;
-                            dlPath = string.Format(@"{0}/{1}_duplicate_{3}.{2}", thisConfig.SavePath, filename, extension, fileIndex);
-                        }
-
-                        if (msgCount == 1 && thisConfig.LastMsgChecked != null && fileIndex > 0) continue;
-                        // special case if its duplicate on first dl message, should happen only when attempting to do already synced channel
-                        // since the download is Atomic and last msg id is updated AFTER download, it means we have the image from last msg id
-                        // (UNLESS ITS OUT FIRST TIME - LastMsgChecked null check)
-
-                        try
+                        for (int i = 0; i < msg.Embeds.Count; i++)
                         {
 
-                            baseUrl = baseUrl.Split("?")[0].Split("%3A")[0]; // anti resize garbage
+                            string baseUrl = "";
 
-                            await Atomic.DownloadFile(wc, dlPath, baseUrl);
-                            mediaCount++;
+                            if (msg.Embeds[i].Image != null)
+                            {
+                                baseUrl = msg.Embeds[i].Image.Url;
+                            }
+                            else if (msg.Embeds[i].Video != null)
+                            {
+                                baseUrl = msg.Embeds[i].Video.Url;
+                            }
+                            else if (msg.Embeds[i].Thumbnail != null)
+                            {
+                                // hard-coded anti-pixiv logo thing when posting r-18 stuff
+                                if (msg.Embeds[i].Thumbnail.Url.Contains("pixiv_logo")) continue;
 
-                            chConfig.UpdateLastMessage(channelID, msg.Id, 1);
+                                baseUrl = msg.Embeds[i].Thumbnail.Url;
+                            }
+                            else
+                            {
+                                continue;
+                            }
 
-                            string json = JsonConvert.SerializeObject(chConfig, Formatting.Indented);
-                            byte[] fileContent = Encoding.UTF8.GetBytes(json);
+                            if (!IsDownloadable(baseUrl))
+                            {
+                                continue;
+                            }
 
-                            Atomic.OverwriteFile("channels.json", new MemoryStream(fileContent), "channels.json.backup");
-                            UpdateFolderList();
-                        }
-                        catch (Exception ex)
-                        {
-                            //_windowMessage.Text = "111: " + ex.Message;
+
+                            string[] splitFilename = baseUrl.Split("/")[^1].Split(".");
+                            string extension = splitFilename[^1].Split(":")[0].Split("?")[0]; // last array element + anti twitter garbage + anti resize garbage
+                            string filename = string.Join(".", splitFilename.Take(splitFilename.Count() - 1));
+                            string dlPath = string.Format(@"{0}/{1}.{2}", thisConfig.SavePath, filename, extension);
+
+                            int fileIndex = 0;
+
+                            while (File.Exists(dlPath) && new FileInfo(dlPath).Length > 0)
+                            {
+                                fileIndex++;
+                                dlPath = string.Format(@"{0}/{1}_duplicate_{3}.{2}", thisConfig.SavePath, filename, extension, fileIndex);
+                            }
+
+                            if (msgCount == 1 && thisConfig.LastMsgChecked != null && fileIndex > 0) continue;
+                            // special case if its duplicate on first dl message, should happen only when attempting to do already synced channel
+                            // since the download is Atomic and last msg id is updated AFTER download, it means we have the image from last msg id
+                            // (UNLESS ITS OUT FIRST TIME - LastMsgChecked null check)
+
                             try
                             {
-                                string proxyDlLink = "";
 
-                                if (msg.Embeds[i].Image != null)
-                                {
-                                    proxyDlLink = msg.Embeds[i].Image.ProxyUrl.Split("?")[0].Split("%3A")[0];
-                                }
-                                else if (msg.Embeds[i].Video != null)
-                                {
-                                    proxyDlLink = msg.Embeds[i].Video.ProxyUrl.Split("?")[0].Split("%3A")[0];
-                                }
-                                else if (msg.Embeds[i].Thumbnail != null)
-                                {
-                                    proxyDlLink = msg.Embeds[i].Thumbnail.ProxyUrl.Split("?")[0].Split("%3A")[0];
-                                }
-                                else
-                                {
-                                    continue;
-                                }
+                                baseUrl = baseUrl.Split("?")[0].Split("%3A")[0]; // anti resize garbage
 
-                                await Atomic.DownloadFile(wc, dlPath, proxyDlLink);
+                                await Atomic.DownloadFile(wc, dlPath, baseUrl);
                                 mediaCount++;
 
                                 chConfig.UpdateLastMessage(channelID, msg.Id, 1);
@@ -426,9 +396,95 @@ namespace ImageFolderSync
                                 Atomic.OverwriteFile("channels.json", new MemoryStream(fileContent), "channels.json.backup");
                                 UpdateFolderList();
                             }
-                            catch (Exception exc)
+                            catch (Exception ex)
                             {
-                                //_windowMessage.Text = "222: " + exc.Message;
+                                //_windowMessage.Text = "111: " + ex.Message;
+                                try
+                                {
+                                    string proxyDlLink = "";
+
+                                    if (msg.Embeds[i].Image != null)
+                                    {
+                                        proxyDlLink = msg.Embeds[i].Image.ProxyUrl.Split("?")[0].Split("%3A")[0];
+                                    }
+                                    else if (msg.Embeds[i].Video != null)
+                                    {
+                                        proxyDlLink = msg.Embeds[i].Video.ProxyUrl.Split("?")[0].Split("%3A")[0];
+                                    }
+                                    else if (msg.Embeds[i].Thumbnail != null)
+                                    {
+                                        proxyDlLink = msg.Embeds[i].Thumbnail.ProxyUrl.Split("?")[0].Split("%3A")[0];
+                                    }
+                                    else
+                                    {
+                                        continue;
+                                    }
+
+                                    await Atomic.DownloadFile(wc, dlPath, proxyDlLink);
+                                    mediaCount++;
+
+                                    chConfig.UpdateLastMessage(channelID, msg.Id, 1);
+
+                                    string json = JsonConvert.SerializeObject(chConfig, Formatting.Indented);
+                                    byte[] fileContent = Encoding.UTF8.GetBytes(json);
+
+                                    Atomic.OverwriteFile("channels.json", new MemoryStream(fileContent), "channels.json.backup");
+                                    UpdateFolderList();
+                                }
+                                catch (Exception exc)
+                                {
+                                    //_windowMessage.Text = "222: " + exc.Message;
+                                    File.Delete(dlPath);
+                                    failCount++;
+                                }
+                            }
+                        }
+
+                    }
+
+                    if (msg.Attachments.Count > 0)
+                    {
+                        for (int i = 0; i < msg.Attachments.Count; i++)
+                        {
+
+                            string dlPath = string.Format(@"{0}/{1}", thisConfig.SavePath, msg.Attachments[i].FileName);
+                            string baseUrl = msg.Attachments[i].Url;
+
+                            if (!IsDownloadable(baseUrl))
+                            {
+                                continue;
+                            }
+
+                            int fileIndex = 0;
+
+                            while (File.Exists(dlPath))
+                            {
+                                fileIndex++;
+                                string[] splitFilename = msg.Attachments[i].FileName.Split(".");
+                                string extension = "." + splitFilename[^1]; // last array element
+                                string filename = msg.Attachments[i].FileName.Replace(extension, "");
+
+                                dlPath = string.Format(@"{0}/{1}_{3}{2}", thisConfig.SavePath, filename, extension, fileIndex);
+                            }
+
+                            try
+                            {
+                                baseUrl = baseUrl.Split("?")[0].Split("%3A")[0];
+
+                                await Atomic.DownloadFile(wc, dlPath, baseUrl);
+                                mediaCount++;
+
+                                chConfig.UpdateLastMessage(channelID, msg.Id, 1);
+
+                                string json = JsonConvert.SerializeObject(chConfig, Formatting.Indented);
+                                byte[] fileContent = Encoding.UTF8.GetBytes(json);
+
+                                Atomic.OverwriteFile("channels.json", new MemoryStream(fileContent), "channels.json.backup");
+                                UpdateFolderList();
+
+                            }
+                            catch (Exception ex)
+                            {
                                 File.Delete(dlPath);
                                 failCount++;
                             }
@@ -437,56 +493,12 @@ namespace ImageFolderSync
 
                 }
 
-                if (msg.Attachments.Count > 0)
-                {
-                    for (int i = 0; i < msg.Attachments.Count; i++)
-                    {
-
-                        string dlPath = string.Format(@"{0}/{1}", thisConfig.SavePath, msg.Attachments[i].FileName);
-                        string baseUrl = msg.Attachments[i].Url;
-
-                        if (!IsDownloadable(baseUrl))
-                        {
-                            continue;
-                        }
-
-                        int fileIndex = 0;
-
-                        while (File.Exists(dlPath))
-                        {
-                            fileIndex++;
-                            string[] splitFilename = msg.Attachments[i].FileName.Split(".");
-                            string extension = "." + splitFilename[^1]; // last array element
-                            string filename = msg.Attachments[i].FileName.Replace(extension, "");
-
-                            dlPath = string.Format(@"{0}/{1}_{3}{2}", thisConfig.SavePath, filename, extension, fileIndex);
-                        }
-
-                        try
-                        {
-                            baseUrl = baseUrl.Split("?")[0].Split("%3A")[0];
-
-                            await Atomic.DownloadFile(wc, dlPath, baseUrl);
-                            mediaCount++;
-
-                            chConfig.UpdateLastMessage(channelID, msg.Id, 1);
-
-                            string json = JsonConvert.SerializeObject(chConfig, Formatting.Indented);
-                            byte[] fileContent = Encoding.UTF8.GetBytes(json);
-
-                            Atomic.OverwriteFile("channels.json", new MemoryStream(fileContent), "channels.json.backup");
-                            UpdateFolderList();
-
-                        }
-                        catch (Exception ex)
-                        {
-                            File.Delete(dlPath);
-                            failCount++;
-                        }
-                    }
-                }
-
             }
+            catch (Exception mainEx) 
+            {
+                MessageBox.Show(mainEx.Message);
+            }
+
 
             if (mediaCount == 0)
             {
@@ -558,16 +570,24 @@ namespace ImageFolderSync
             listbox.Items.Clear();
             listbox.IsEnabled = false;
 
-            await foreach (var guild in guilds)
+            try 
             {
-                ListBoxItem item = new ListBoxItem();
-                item.Content = guild.Name;
-                item.SetValue(id, guild.Id);
-                item.Selected += OnServerSelected;
+                await foreach (var guild in guilds)
+                {
+                    ListBoxItem item = new ListBoxItem();
+                    item.Content = guild.Name;
+                    item.SetValue(id, guild.Id);
+                    item.Selected += OnServerSelected;
 
-                listbox.Items.Add(item);
-                await Task.Delay(50);
+                    listbox.Items.Add(item);
+                    await Task.Delay(75);
+                }
+            } 
+            catch (Exception ex) 
+            {
+                MessageBox.Show(ex.Message);
             }
+
 
             listbox.Items.SortDescriptions.Add(new System.ComponentModel.SortDescription("Content", System.ComponentModel.ListSortDirection.Ascending));
             listbox.IsEnabled = true;
