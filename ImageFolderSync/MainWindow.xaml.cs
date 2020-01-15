@@ -45,6 +45,8 @@ namespace ImageFolderSync
 
         public ObservableCollection<ImageTextPair> GuildsComboBox { get; set; }
 
+        private Boolean _dragging = false;
+
         public MainWindow()
         {
             this.DataContext = this;
@@ -63,10 +65,31 @@ namespace ImageFolderSync
 
         }
 
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                _dragging = true;
+                this.DragMove();
+            }
+        }
+
+        private void Window_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                _dragging = false;
+            }
+        }
+
+
         private void Update(object sender, EventArgs e)
         {
-            // made some dummy basically invis element that gets refreshed "as fast as possible" - should be monitor's refresh rate
-            this._invisElement.IsEnabled = !_invisElement.IsEnabled;
+            if (!_dragging)
+            {
+                // made some dummy basically invis element that gets refreshed "as fast as possible" - should be monitor's refresh rate
+                this._invisElement.IsEnabled = !_invisElement.IsEnabled;
+            }
         }
 
         public async void Whomst()
