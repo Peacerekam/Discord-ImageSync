@@ -54,12 +54,20 @@ namespace ImageFolderSync
 
             InitializeComponent();
 
+            // performance be damned, i just hate the weird refreshrate
+            CompositionTarget.Rendering += Update;
+
             UpdateFolderList();
 
             Whomst();
 
         }
 
+        private void Update(object sender, EventArgs e)
+        {
+            // made some dummy basically invis element that gets refreshed "as fast as possible" - should be monitor's refresh rate
+            this._invisElement.IsEnabled = !_invisElement.IsEnabled;
+        }
 
         public async void Whomst()
         {
