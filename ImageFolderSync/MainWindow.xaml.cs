@@ -65,6 +65,20 @@ namespace ImageFolderSync
 
         }
 
+        public void CloseApp(object sender, RoutedEventArgs e)
+        {
+            MessageBoxImage mbi = new MessageBoxImage();
+            string desc = "Are you sure you want to exit?\nAll the ongoing downloading will stop. (check for downloading, then warn?)";
+
+            // should be custom messagebox... because.
+            MessageBoxResult result = MessageBox.Show(desc, "Close app", MessageBoxButton.YesNo, mbi, MessageBoxResult.No);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                Application.Current.Shutdown();
+            }
+        }
+
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)

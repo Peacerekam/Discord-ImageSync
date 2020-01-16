@@ -123,7 +123,8 @@
             <Button Name="CloseAppButton" DockPanel.Dock="Right"
                     Width="46" Height="30" HorizontalAlignment="Right"
                     BorderThickness="0"  Background="Transparent" 
-                    Style="{StaticResource CloseButton}" Margin="0,0" Focusable="False">
+                    Style="{StaticResource CloseButton}" Margin="0,0" Focusable="False"
+                    Click="CloseApp" >
                 <Image Source="/Images/exit1.png" Width="10"/>
             </Button>
             <Button Name="MaximizeAppButton" DockPanel.Dock="Right"
