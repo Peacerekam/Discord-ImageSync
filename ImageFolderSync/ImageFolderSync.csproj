@@ -19,28 +19,27 @@
 
   <ItemGroup>
     <None Remove="icon.png" />
+    <None Remove="Images\demax.png" />
     <None Remove="Images\exit1.png" />
     <None Remove="Images\exit2.png" />
     <None Remove="Images\max.png" />
     <None Remove="Images\min.png" />
+    <None Remove="Images\mintotray.png" />
+    <None Remove="sync.ico" />
   </ItemGroup>
 
   <ItemGroup>
-    <COMReference Include="{d37e2a3e-8545-3a39-9f4f-31827c9124ab}">
-      <Guid>d37e2a3e-8545-3a39-9f4f-31827c9124ab</Guid>
-      <VersionMajor>2</VersionMajor>
-      <VersionMinor>4</VersionMinor>
-      <WrapperTool>tlbimp</WrapperTool>
-    </COMReference>
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.0.8" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Polly" Version="7.2.0" />
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
     <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Images\demax.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
     <Resource Include="Images\exit1.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
@@ -56,12 +55,12 @@
     <Resource Include="Images\min.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="sync.ico">
+    <Resource Include="Images\mintotray.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
+    </Resource>
+    <Resource Include="sync.ico">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>

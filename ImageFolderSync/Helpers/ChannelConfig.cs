@@ -19,6 +19,7 @@ namespace ImageFolderSync.Helpers
         {
             list[key] = new Values()
             {
+                IconUrl = list[key].IconUrl,
                 GuildName = list[key].GuildName,
                 ChannelName = list[key].ChannelName,
                 GuildId = list[key].GuildId,
@@ -31,6 +32,7 @@ namespace ImageFolderSync.Helpers
 
         public struct Values
         {
+            public string IconUrl;
             public string GuildName;
             public string ChannelName;
             public string GuildId;

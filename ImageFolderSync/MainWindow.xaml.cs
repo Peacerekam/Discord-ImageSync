@@ -6,12 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System.Net;
 using System.ComponentModel;
@@ -19,12 +16,8 @@ using ImageFolderSync.DiscordClasses;
 using ImageFolderSync.Helpers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.Threading;
-using System.Reflection;
-using System.Diagnostics;
-using System.Runtime.Loader;
 using System.Collections.ObjectModel;
-using System.Windows.Interop;
+using ImageFolderSync.UI;
 
 namespace ImageFolderSync
 {
@@ -33,62 +26,113 @@ namespace ImageFolderSync
     /// </summary>
     public partial class MainWindow : Window
     {
+        public static MainWindow _instance;
+
         public ConfigData config;
         public ChannelConfig chConfig;
 
-        public Boolean cancelSync = false;
-
-        public static readonly DependencyProperty id = DependencyProperty.Register("Id", typeof(string), typeof(ListBoxItem));
+        public DependencyProperty idProperty = DependencyProperty.Register("Id", typeof(string), typeof(ListBoxItem));
+        public DependencyProperty guildId = DependencyProperty.Register("guildId", typeof(string), typeof(ListBoxItem));
+        public DependencyProperty iconUrl = DependencyProperty.Register("iconUrl", typeof(string), typeof(ListBoxItem));
 
         // later make a listbox with this, so you can add or remove extensions
         public string[] mediaExt = { "png", "gif", "jpg", "jpeg", "mp4", "webm", "webp" };
 
-        public ObservableCollection<ImageTextPair> GuildsComboBox { get; set; }
+        public ObservableCollection<ViewGuild> GuildsComboBox { get; set; }
 
+        private Boolean cancelSync = false;
         private Boolean _dragging = false;
 
         public MainWindow()
         {
-            this.DataContext = this;
-            GuildsComboBox = new ObservableCollection<ImageTextPair>();
-
             HandleConfig();
-
             InitializeComponent();
-
-            // performance be damned, i just hate the weird refreshrate
-            CompositionTarget.Rendering += Update;
-
             UpdateFolderList();
+            TryToken();
 
-            Whomst();
+            DataContext = this;
+            _instance = this;
 
+            MyTray myTray = new MyTray();
+            GuildsComboBox = new ObservableCollection<ViewGuild>();
+
+            CompositionTarget.Rendering += ForceRefreshUI; // performance be damned, i just hate the weird refresh rate
+        }
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+
+            if (this.WindowState == WindowState.Maximized)
+                this.MaximizeAppButton.Content = FindResource("demaxPic");
+
+            if (this.WindowState == WindowState.Normal)
+                this.MaximizeAppButton.Content = FindResource("maxPic");
+
+            base.OnStateChanged(e);
         }
 
         public void CloseApp(object sender, RoutedEventArgs e)
         {
+            /*
             MessageBoxImage mbi = new MessageBoxImage();
-            string desc = "Are you sure you want to exit?\nAll the ongoing downloading will stop. (check for downloading, then warn?)";
+            string desc = "Are you sure you want to exit?\nAll the ongoing downloading will pause. (check for downloading, then warn?)";
 
             // should be custom messagebox... because.
-            MessageBoxResult result = MessageBox.Show(desc, "Close app", MessageBoxButton.YesNo, mbi, MessageBoxResult.No);
+            MessageBoxResult result = MessageBox.Show(desc, "Close app", MessageBoxButton.YesNo, mbi, MessageBoxResult.Yes);
 
-            if (result == MessageBoxResult.Yes)
+            if (result == MessageBoxResult.No)
             {
-                Application.Current.Shutdown();
+                return;
+            }
+            */
+
+            Application.Current.Shutdown();
+        }
+
+        public void MinimizeApp(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        public void MinimizeToTray(object sender, RoutedEventArgs e)
+        {
+            Application.Current.MainWindow.Visibility = Visibility.Hidden;
+        }
+
+        public void MaximizeApp(object sender, RoutedEventArgs e)
+        {
+            if (WindowState == WindowState.Maximized)
+            {
+                this.WindowState = WindowState.Normal;
+            }
+            else
+            {
+                this.WindowState = WindowState.Maximized;
             }
         }
 
-        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        private void TitlebarMouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
             {
                 _dragging = true;
                 this.DragMove();
             }
+
+            if (e.ClickCount == 2)
+            {
+                if (WindowState == WindowState.Maximized)
+                {
+                    this.WindowState = WindowState.Normal;
+                }
+                else
+                {
+                    this.WindowState = WindowState.Maximized;
+                }
+            }
         }
 
-        private void Window_MouseUp(object sender, MouseButtonEventArgs e)
+        private void TitlebarMouseUp(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
             {
@@ -96,8 +140,7 @@ namespace ImageFolderSync
             }
         }
 
-
-        private void Update(object sender, EventArgs e)
+        private void ForceRefreshUI(object sender, EventArgs e)
         {
             if (!_dragging)
             {
@@ -106,7 +149,7 @@ namespace ImageFolderSync
             }
         }
 
-        public async void Whomst()
+        public async void TryToken()
         {
             try
             {
@@ -129,7 +172,7 @@ namespace ImageFolderSync
                 return;
             }
 
-            string accToken = accountItem.GetValue(id).ToString();
+            string accToken = accountItem.GetValue(idProperty).ToString();
 
             config.Token = accToken;
 
@@ -137,7 +180,7 @@ namespace ImageFolderSync
             byte[] fileContent = Encoding.UTF8.GetBytes(json);
 
             Atomic.OverwriteFile("config.json", new MemoryStream(fileContent), "config.json.backup");
-            Whomst();
+            TryToken();
 
             this._serverList.Items.Clear();
             this._channelList.Items.Clear();
@@ -185,7 +228,7 @@ namespace ImageFolderSync
                     ListBoxItem item = new ListBoxItem();
                     item.Content = res["username"];
                     item.Selected += OnFolderSelected;
-                    item.SetValue(id, token);
+                    item.SetValue(idProperty, token);
                     item.Height = 35;
 
                     listbox.Items.Add(item);
@@ -247,7 +290,9 @@ namespace ImageFolderSync
                 item.Content = $"{ch.Value.GuildName}\n{ch.Value.ChannelName}\n{ch.Value.SavePath}\nDownloaded Images: {ch.Value.ImagesSaved}";
                 item.Selected += OnFolderSelected;
                 item.Unselected += OnFolderUnselected;
-                item.SetValue(id, ch.Key);
+                item.SetValue(idProperty, ch.Key);
+                item.SetValue(guildId, ch.Value.GuildId);
+                item.SetValue(iconUrl, ch.Value.IconUrl);
                 item.Height = 75;
 
                 listbox.Items.Add(item);
@@ -257,11 +302,11 @@ namespace ImageFolderSync
 
         public void AddChannel(object sender, RoutedEventArgs e)
         {
-
-            ListBoxItem serverItem = _serverList.SelectedItem as ListBoxItem;
+            //ListBoxItem serverItem = _serverList.SelectedItem as ListBoxItem;
+            ViewGuild serverItem = _guildComboBox.SelectedItem as ViewGuild;
             ListBoxItem channelItem = _channelList.SelectedItem as ListBoxItem;
 
-            string channelID = channelItem.GetValue(id).ToString();
+            string channelID = channelItem.GetValue(idProperty).ToString();
 
             chConfig = JsonConvert.DeserializeObject<ChannelConfig>(File.ReadAllText("channels.json"));
 
@@ -269,9 +314,10 @@ namespace ImageFolderSync
             {
                 chConfig.list.Add(channelID, new ChannelConfig.Values()
                 {
-                    GuildName = serverItem.Content.ToString(),
+                    IconUrl = serverItem.ImageUrl,
+                    GuildName = serverItem.Name,
                     ChannelName = channelItem.Content.ToString(),
-                    GuildId = serverItem.GetValue(id).ToString(),
+                    GuildId = serverItem.Id,
                     ChannelId = channelID,
                     LastMsgChecked = null,
                     SavePath = this._path.Text,
@@ -282,9 +328,10 @@ namespace ImageFolderSync
             {
                 chConfig.list[channelID] = new ChannelConfig.Values()
                 {
-                    GuildName = serverItem.Content.ToString(),
+                    IconUrl = serverItem.ImageUrl,
+                    GuildName = serverItem.Name,
                     ChannelName = channelItem.Content.ToString(),
-                    GuildId = serverItem.GetValue(id).ToString(),
+                    GuildId = serverItem.Id,
                     ChannelId = channelID,
                     LastMsgChecked = null,
                     SavePath = this._path.Text,
@@ -347,7 +394,10 @@ namespace ImageFolderSync
             this._serverList.IsEnabled = false;
             this._folderList.IsEnabled = false;
 
-            string? channelID = (_folderList.SelectedItem is ListBoxItem folderItem) ? folderItem.GetValue(id).ToString() : null;
+            MenuItem b = sender as MenuItem;
+            string? preferedID = b == null ? null : b.CommandParameter.ToString();
+
+            string? channelID = preferedID == null ? ((_folderList.SelectedItem is ListBoxItem folderItem) ? folderItem.GetValue(idProperty).ToString() : null) : preferedID;
             if (channelID == null) return;
 
             ChannelConfig.Values thisConfig = chConfig.list[channelID];
@@ -645,12 +695,15 @@ namespace ImageFolderSync
                 {
                     ListBoxItem item = new ListBoxItem();
                     item.Content = guild.Name;
-                    item.SetValue(id, guild.Id);
+                    item.SetValue(idProperty, guild.Id);
+                    item.SetValue(iconUrl, guild.IconUrl);
                     item.Selected += OnServerSelected;
 
-                    ImageTextPair itp = new ImageTextPair{
+                    ViewGuild itp = new ViewGuild{
                         Image = new BitmapImage( new Uri(guild.IconUrl) ),
-                        Text = guild.Name
+                        ImageUrl = guild.IconUrl,
+                        Name = guild.Name,
+                        Id = guild.Id
                     };
 
                     GuildsComboBox.Add(itp);
@@ -700,7 +753,7 @@ namespace ImageFolderSync
             try
             {
                 DiscordAPI d = new DiscordAPI();
-                channels = await d.GetGuildChannelsAsync(config.Token, lbi.GetValue(id).ToString()); // this._token.Text
+                channels = await d.GetGuildChannelsAsync(config.Token, lbi.GetValue(idProperty).ToString()); // this._token.Text
             }
             catch
             {
@@ -731,7 +784,7 @@ namespace ImageFolderSync
                 //item.Content = $"{ch.Id} | {parent} > {ch.Name}";
                 item.Content = $"{prefix}{ch.Name}";
                 item.Selected += OnChannelSelected;
-                item.SetValue(id, ch.Id);
+                item.SetValue(idProperty, ch.Id);
 
                 listbox.Items.Add(item);
 
