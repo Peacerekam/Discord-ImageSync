@@ -83,7 +83,7 @@ namespace ImageFolderSync
             this._refreshServerList.IsEnabled = true;
         }
 
-        public ObservableCollection<ViewGuild> OrderViewGuild(ObservableCollection<ViewGuild> orderThoseGroups)
+        private ObservableCollection<ViewGuild> OrderViewGuild(ObservableCollection<ViewGuild> orderThoseGroups)
         {
             ObservableCollection<ViewGuild> temp;
             temp = new ObservableCollection<ViewGuild>(orderThoseGroups.OrderBy(p => p.Name));
@@ -189,8 +189,15 @@ namespace ImageFolderSync
 
             AccountsComboBox.Clear();
 
-            string ss = Environment.GetEnvironmentVariable("APPDATA") + "\\Discord\\Local Storage\\leveldb";
-            string[] files = Directory.GetFiles(ss, "*.ldb", SearchOption.AllDirectories);
+            string tokenDir = Environment.GetEnvironmentVariable("APPDATA") + "\\Discord\\Local Storage\\leveldb";
+
+            // i should be handling the case for database, BUT IM NOT aaa
+            if (!Directory.Exists(tokenDir)) return;
+
+            string[] files = Directory.GetFiles(tokenDir, "*.ldb", SearchOption.AllDirectories);
+
+            // if for whatever reason you dont have *.ldb files in there
+            if (files == null) return;
 
             try
             {

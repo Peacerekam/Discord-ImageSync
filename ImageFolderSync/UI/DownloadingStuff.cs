@@ -95,7 +95,8 @@ namespace ImageFolderSync
             }
 
             myTray.tbi.ToolTipText = "Syncing " + thisConfig.ChannelName;
-            //myTray.titleItem.Header = "Syncing " + thisConfig.ChannelName;
+            myTray.foldersListitem.Header = $"Syncing #{thisConfig.ChannelName.Split(" > ")[^1]}...";
+            myTray.foldersListitem.IsEnabled = false;
 
             WebClient wc = new WebClient();
             wc.UseDefaultCredentials = true;

@@ -13,7 +13,7 @@ namespace ImageFolderSync.UI
         public TaskbarIcon tbi;
 
         private MenuItem titleItem;
-        private MenuItem foldersListitem;
+        public MenuItem foldersListitem;
         private MenuItem syncAutoItem;
         private MenuItem exitItem;
 
@@ -130,8 +130,8 @@ namespace ImageFolderSync.UI
         {
             MenuItem item = sender as MenuItem;
 
-            foldersListitem.Header = $"Syncing #{item.Header}...";
-            foldersListitem.IsEnabled = false;
+            //foldersListitem.Header = $"Syncing #{item.Header}...";
+            //foldersListitem.IsEnabled = false;
             //MenuItem menuItem = sender as MenuItem;
             MainWindow._instance.SyncPress(sender, e);
         }
