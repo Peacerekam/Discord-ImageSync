@@ -87,7 +87,7 @@ namespace ImageFolderSync
         public async Task<JToken> GetSelfAsync(string token)
         {
             var response = await GetApiResponseAsync(token, $"users/@me");
-            // cant be bothered to parse it, i only need the username
+            // cant be bothered to parse it, i only need the username anywayyyys
 
             return response;
         }
@@ -103,7 +103,6 @@ namespace ImageFolderSync
 
             return channels;
         }
-
 
         private async Task<Message> GetLastMessageAsync(string token, string channelId, DateTimeOffset? before = null)
         {
@@ -180,7 +179,6 @@ namespace ImageFolderSync
             yield return lastMessage;
             progress?.Report(1);
         }
-
 
         public void Dispose() => _httpClient.Dispose();
     }

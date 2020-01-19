@@ -14,7 +14,7 @@ namespace ImageFolderSync.Helpers
     public class FolderTile : StackPanel
     {
         public ChannelConfig.Values MyConfig;
-        public Image Image;
+        private Image Image;
 
         private BitmapImage syncIcon;
         private BitmapImage folderIcon;
@@ -126,6 +126,7 @@ namespace ImageFolderSync.Helpers
             this.Background.Opacity = 0.5;
             //Image.Effect = highlightedEffect;
         }
+
         private void OnMouseLeave(object sender, MouseEventArgs e)
         {
             this.Background.Opacity = 0;

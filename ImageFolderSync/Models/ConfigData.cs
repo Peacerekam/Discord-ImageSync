@@ -7,6 +7,7 @@
         public ChannelConfig ChConfig;
 
         public int LastWidth;
+
         public int LastHeight;
     }
 }

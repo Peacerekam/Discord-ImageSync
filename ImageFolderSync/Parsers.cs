@@ -8,17 +8,6 @@ namespace ImageFolderSync
 {
     public partial class DiscordAPI
     {
-        private User ParseUser(JToken json)
-        {
-            var id = json["id"]!.Value<string>();
-            var discriminator = json["discriminator"]!.Value<int>();
-            var name = json["username"]!.Value<string>();
-            var avatarHash = json["avatar"]!.Value<string>();
-            var isBot = json["bot"]?.Value<bool>() ?? false;
-
-            return new User(id, discriminator, name, avatarHash, isBot);
-        }
-
         private Attachment ParseAttachment(JToken json)
         {
             var id = json["id"]!.Value<string>();
@@ -96,7 +85,7 @@ namespace ImageFolderSync
             return new Message(id, channelId, type, timestamp, editedTimestamp, content, attachments, embeds);
         }
 
-        public Channel ParseChannel(JToken json)
+        private Channel ParseChannel(JToken json)
         {
             // Get basic data
             var id = json["id"]!.Value<string>();
@@ -125,7 +114,7 @@ namespace ImageFolderSync
             return new Channel(id, parentId, guildId, name, type);
         }
 
-        public Guild ParseGuild(JToken json)
+        private Guild ParseGuild(JToken json)
         {
             var id = json["id"]!.Value<string>();
             var name = json["name"]!.Value<string>();
