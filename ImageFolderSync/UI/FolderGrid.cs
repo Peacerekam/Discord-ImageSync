@@ -1,5 +1,7 @@
 ﻿using ImageFolderSync.Helpers;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
+using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -54,6 +56,37 @@ namespace ImageFolderSync
             }
 
             _old = itemsPerRow;
+        }
+
+
+        public void RemoveFolder(object sender, RoutedEventArgs e)
+        {
+
+            Button b = sender as Button;
+            b.Opacity = 0.1;
+
+            MessageBoxImage mbi = new MessageBoxImage();
+            string desc = $"Do you wish to {_deleteButtonText.Text}";
+
+            // should be custom messagebox... but meh
+            MessageBoxResult result = MessageBox.Show(desc, "Remove from the list", MessageBoxButton.YesNo, mbi, MessageBoxResult.Yes);
+
+            if (result == MessageBoxResult.Yes)
+            {
+
+                chConfig.list.Remove(b.CommandParameter.ToString());
+                config.ChConfig = chConfig;
+
+                UpdateFolderGrid(true);
+                RefreshDropboxList();
+                myTray.UpdateTrayFolders();
+
+                string json = JsonConvert.SerializeObject(config, Formatting.Indented);
+                byte[] fileContent = Encoding.UTF8.GetBytes(json);
+
+                Atomic.OverwriteFile("config.json", new MemoryStream(fileContent), "config.json.backup");
+            }
+
         }
 
         private StackPanel NewFolderRow()

@@ -48,7 +48,7 @@ namespace ImageFolderSync.Helpers
             if (p.Length > 200)
             {
                 // without filename
-                if (p.Length - filename.Length < 200 )
+                if (p.Length - filename.Length < 200)
                 {
                     filename = filename.Length > 30 ? filename.Substring(0, 30) : filename;
                     p = string.Format(@"{0}/{1}{3}.{2}", savePath, filename, extension, fileIndex);
@@ -68,9 +68,25 @@ namespace ImageFolderSync.Helpers
                     }
                     p = string.Format(@"{0}/{1}{3}.{2}", savePath, filename, newExt, fileIndex);
                 }
+
+                return p;
+            }
+            else 
+            {
+                for (int i = 0; i < mediaExt.Length; i++)
+                {
+                    if (extension.Contains(mediaExt[i]))
+                    {
+                        // extension seems to be media, so lets return it
+                        return p;
+                    }
+                }
+
+                // save as .png because that better than random chars
+                p = string.Format(@"{0}/{1}{3}.{2}", savePath, filename, "png", fileIndex);
+                return p;
             }
 
-            return p;
         }
 
     }

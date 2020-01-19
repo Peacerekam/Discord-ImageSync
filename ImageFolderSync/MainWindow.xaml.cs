@@ -35,6 +35,7 @@ namespace ImageFolderSync
             TryToken();
 
             chConfig = config.ChConfig;
+            _deleteButton.Click += RemoveFolder;
             CompositionTarget.Rendering += ForceRefreshUI; // performance be damned, i just hate the weird refresh rate
 
             // what the fuck - if i dont do it with a delay it wont properly refresh at initial start of the app

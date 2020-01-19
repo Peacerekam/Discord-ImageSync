@@ -365,6 +365,10 @@ namespace ImageFolderSync
                     cb.BorderBrush = new SolidColorBrush(color);
                     cb.Foreground = new SolidColorBrush(color);
                 }
+                else {
+                    cb.BorderBrush = new SolidColorBrush(Colors.Transparent);
+                    cb.Foreground = new SolidColorBrush(Colors.Black);
+                }
 
             }
         }

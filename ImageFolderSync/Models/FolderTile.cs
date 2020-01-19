@@ -1,12 +1,11 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 
 namespace ImageFolderSync.Helpers
@@ -58,7 +57,7 @@ namespace ImageFolderSync.Helpers
                 //Effect = normalEffect,
                 Clip = clipGeometry
             };
-
+            
             string rawChannelName = MyConfig.ChannelName.Split(" > ")[^1];
             TextBlock tb = new TextBlock
             {
@@ -73,7 +72,7 @@ namespace ImageFolderSync.Helpers
             this.Background.Opacity = 0;
             this.HorizontalAlignment = HorizontalAlignment.Left;
 
-            this.ToolTip = "2x LMB : Start sync\n1x RMB : Open explorer";
+            this.ToolTip = $"2x LMB : Start sync\n1x RMB : Open {MyConfig.SavePath}";
             this.Width = 104;
             this.Cursor = Cursors.Hand;
             this.Children.Add(Image);
@@ -83,6 +82,7 @@ namespace ImageFolderSync.Helpers
             this.MouseDown += OnMouseDown;
             this.MouseUp += OnMouseUp;
             this.MouseLeave += OnMouseLeave;
+
         }
 
         private void OnMouseDown(object sender, MouseButtonEventArgs e)
@@ -97,6 +97,7 @@ namespace ImageFolderSync.Helpers
                     return;
                 }
 
+                PopRemoveButton();
                 Image.Source = syncIcon;
             }
             else if (e.RightButton == MouseButtonState.Pressed)
@@ -111,6 +112,31 @@ namespace ImageFolderSync.Helpers
                 }
             }
         }
+
+        private async void PopRemoveButton()
+        {
+            Button b = MainWindow._instance._deleteButton;
+            TextBlock tb = MainWindow._instance._deleteButtonText;
+
+            b.CommandParameter = MyConfig.ChannelId;
+            b.Opacity = 1.75;
+            tb.Text = $"remove #{MyConfig.ChannelName.Split(" > ")[^1]}?";
+
+            if (b.Visibility == Visibility.Hidden)
+            {
+
+                b.Visibility = Visibility.Visible;
+
+                while (b.Opacity > 0)
+                {
+                    b.Opacity = b.Opacity - 0.01;
+                    await Task.Delay(10);
+                }
+
+                b.Visibility = Visibility.Hidden;
+            }
+        }
+
 
         private void OnMouseUp(object sender, MouseButtonEventArgs e)
         {
