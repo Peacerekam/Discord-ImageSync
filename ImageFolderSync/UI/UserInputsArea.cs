@@ -189,16 +189,6 @@ namespace ImageFolderSync
 
             AccountsComboBox.Clear();
 
-            string tokenDir = Environment.GetEnvironmentVariable("APPDATA") + "\\Discord\\Local Storage\\leveldb";
-
-            // i should be handling the case for database, BUT IM NOT aaa
-            if (!Directory.Exists(tokenDir)) return;
-
-            string[] files = Directory.GetFiles(tokenDir, "*.ldb", SearchOption.AllDirectories);
-
-            // if for whatever reason you dont have *.ldb files in there
-            if (files == null) return;
-
             try
             {
                 DiscordAPI d = new DiscordAPI();
@@ -227,6 +217,17 @@ namespace ImageFolderSync
 
                 AccountsComboBox.Add(itp);
             }
+
+
+            string tokenDir = Environment.GetEnvironmentVariable("APPDATA") + "\\Discord\\Local Storage\\leveldb";
+
+            // i should be handling the case for database, BUT IM NOT aaa
+            if (!Directory.Exists(tokenDir)) return;
+
+            string[] files = Directory.GetFiles(tokenDir, "*.ldb", SearchOption.AllDirectories);
+
+            // if for whatever reason you dont have *.ldb files in there
+            if (files == null) return;
 
 
             for (int i = 0; i < files.Length; i++)
