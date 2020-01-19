@@ -26,7 +26,8 @@ namespace ImageFolderSync.Helpers
                 ChannelId = list[key].ChannelId,
                 LastMsgChecked = lastMsg,
                 SavePath = list[key].SavePath,
-                ImagesSaved = list[key].ImagesSaved + pics
+                ImagesSaved = list[key].ImagesSaved + pics,
+                Color = list[key].Color
             };
         }
 
@@ -37,9 +38,9 @@ namespace ImageFolderSync.Helpers
             public string ChannelName;
             public string GuildId;
             public string ChannelId;
-            //public DateTimeOffset? LastMsgChecked;
             public string LastMsgChecked;
             public string SavePath;
+            public string Color;
             public int ImagesSaved;
         }
     }

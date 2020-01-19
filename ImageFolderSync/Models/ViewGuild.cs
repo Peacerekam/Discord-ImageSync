@@ -10,7 +10,11 @@ namespace ImageFolderSync.Helpers
 
         public string Name { get; set; }
 
+        public string FullName { get; set; }
+
         public string Id { get; set; }
+
+        public bool IsSelectable { get; set; }
 
     }
 }

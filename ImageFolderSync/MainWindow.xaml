@@ -7,15 +7,16 @@
         xmlns:tb="http://www.hardcodet.net/taskbar"
         mc:Ignorable="d"
         
-        MinWidth="1000"
-        MinHeight="450"
-        Title="Discord Image Sync" Height="600" Width="1200"
+        MinWidth="300" MinHeight="366"
+        Width="510" Height="600" 
+        Title="Discord Image Sync"
         
         Foreground="#dcddde"
         Background="#2f3136"
         BorderBrush="#202225"
         WindowStyle="None"
         WindowStartupLocation="CenterScreen" 
+        SizeChanged="WindowSizeChanged"
         BorderThickness="0"
         >
 
@@ -35,7 +36,7 @@
         <Style TargetType="{x:Type ListBoxItem}">
             <Setter Property="Control.Foreground" Value="#dcddde"/>
         </Style>
-        
+
         <Style x:Key="CloseButton" TargetType="{x:Type Button}">
             <Setter Property="Template">
                 <Setter.Value>
@@ -47,6 +48,9 @@
                                         <Trigger Property="IsMouseOver" Value="True">
                                             <Setter Property="Background" Value="#f04747"/>
                                         </Trigger>
+                                        <DataTrigger Binding="{Binding IsPressed, RelativeSource={RelativeSource Mode=TemplatedParent}}" Value="True">
+                                            <Setter Property="Background" Value="#7FF04747"/>
+                                        </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </Border.Style>
@@ -69,6 +73,9 @@
                                         <Trigger Property="IsMouseOver" Value="True">
                                             <Setter Property="Background" Value="#282b2e"/>
                                         </Trigger>
+                                        <DataTrigger Binding="{Binding IsPressed, RelativeSource={RelativeSource Mode=TemplatedParent}}" Value="True">
+                                            <Setter Property="Background" Value="#7F282B2E"/>
+                                        </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </Border.Style>
@@ -86,27 +93,20 @@
     <Grid>
 
         <Grid.RowDefinitions>
+            <RowDefinition Height = "30" />
             <RowDefinition Height = "50" />
             <RowDefinition Height = "50" />
-            <RowDefinition Height = "30" />
-            <RowDefinition Height = "30" />
-            <RowDefinition Height = "200" />
+            <RowDefinition Height = "70" />
             <RowDefinition Height = "30" />
             <RowDefinition Height = "*" />
+            <RowDefinition Height = "40" />
         </Grid.RowDefinitions>
 
-        
+
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width = "40" />
             <ColumnDefinition Width = "*" />
-            <ColumnDefinition Width = "*" />
-            <ColumnDefinition Width = "*" />
-            <ColumnDefinition Width = "*" />
-            <ColumnDefinition Width = "*"/>
-            <ColumnDefinition Width = "*" />
-            <ColumnDefinition Width = "*" />
-            <ColumnDefinition Width = "*" />
-            <ColumnDefinition Width = "*" />
-            <ColumnDefinition Width = "*" />
+            <ColumnDefinition Width = "40" />
         </Grid.ColumnDefinitions>
 
         <TextBox Name="_invisElement" Text="107" Grid.Column="9" Grid.Row="1"
@@ -114,120 +114,164 @@
                  Margin="6" Width="1" Height="1" BorderThickness="0"
                  HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
 
+
+
+
         <DockPanel x:Name="TitleBar" MouseDown="TitlebarMouseDown" MouseUp="TitlebarMouseUp" 
-                   
                    VerticalAlignment="Top" KeyboardNavigation.TabNavigation="None"
-                   Background="#202225" Height="30" Grid.ColumnSpan="10" >
+                   Background="#202225" Height="30" Grid.ColumnSpan="13" >
 
             <Image Width="17" VerticalAlignment="Center" Margin="6,0,6,1" 
                    Source="/Images/icon.png"/>
 
-            <TextBlock HorizontalAlignment="Left" VerticalAlignment="Center" 
+            <TextBlock Name="_titleText" HorizontalAlignment="Left" VerticalAlignment="Center" 
                        Foreground="White" Text="Discord Image Sync" 
                        Margin="0,0,0,1"/>
 
+
             <Button Name="CloseAppButton" DockPanel.Dock="Right"
                     Width="46" Height="30" HorizontalAlignment="Right"
-                    BorderThickness="0"  Background="Transparent" 
-                    Style="{StaticResource CloseButton}" Margin="0,0" Focusable="False"
+                    Style="{StaticResource CloseButton}" Focusable="False"
                     Click="CloseApp" ToolTip="Exit" ToolTipService.InitialShowDelay="1000">
                 <Image Source="/Images/exit1.png" Width="10"/>
             </Button>
             <Button Name="MaximizeAppButton" DockPanel.Dock="Right"
                     Width="46" Height="30" HorizontalAlignment="Right"
-                    BorderThickness="0" Background="Transparent" 
-                    Style="{StaticResource TitleBarButton}"  Margin="0,0" Focusable="False"
+                    Style="{StaticResource TitleBarButton}" Focusable="False"
                     Click="MaximizeApp" ToolTip="Maximize" ToolTipService.InitialShowDelay="1000">
                 <Image Source="/Images/max.png" Width="10"/>
             </Button>
             <Button Name="MinimizeAppButton" DockPanel.Dock="Right"
                     Width="46" Height="31" HorizontalAlignment="Right"
-                    BorderThickness="0" Background="Transparent" 
-                    Style="{StaticResource TitleBarButton}" Margin="0,0" Focusable="False"
+                    Style="{StaticResource TitleBarButton}" Focusable="False"
                     Click="MinimizeApp" ToolTip="Minimize" ToolTipService.InitialShowDelay="1000">
                 <Image Source="/Images/min.png" Width="10"/>
             </Button>
-            <Button Name="MinimizeToTrayButton" DockPanel.Dock="Right"
+            <Button Name="MinimizeToTrayButton" DockPanel.Dock="Right" Panel.ZIndex="20"
                     Width="46" Height="30" HorizontalAlignment="Right"
-                    BorderThickness="0" Background="Transparent" 
                     Style="{StaticResource TitleBarButton}" Margin="0,0,50,0" Focusable="False"
                     Click="MinimizeToTray" ToolTip="Minimize to tray" ToolTipService.InitialShowDelay="1000">
                 <Image Source="/Images/mintotray.png" Width="10"/>
             </Button>
         </DockPanel>
 
-        
-        <StackPanel Margin="5,5,5,5"
-                    Grid.Row="1"
-                    Grid.Column="0" Grid.ColumnSpan="2"
-                    >
-            <ComboBox Name="_guildComboBox" ItemsSource="{Binding GuildsComboBox}" Height="30">
+        <Image  Name="_bgImage" Stretch="UniformToFill" Opacity="0.5"
+                Grid.Row="1" Grid.RowSpan="6" Margin="0"
+                Grid.Column="0" Grid.ColumnSpan="13" Panel.ZIndex="-10"
+                HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                >
+            <Image.Effect>
+                <BlurEffect Radius="50" />
+            </Image.Effect>
+        </Image>
+
+
+
+
+        <DockPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="13" Margin="0,20,0,0"
+                   HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock Name ="_preUsername" Text="Not logged in"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+            <Image Name="_pfp" Grid.Column="1" Grid.Row="1" Source="/Images/exit1.png"
+               Width="20" Height="20" Margin="10,0,10,0" >
+            </Image>
+
+            <TextBlock Name="_username" Text=""
+                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </DockPanel>
+
+
+
+
+        <DockPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="13"
+                   HorizontalAlignment="Center" VerticalAlignment="Center">
+
+            <ComboBox Name="_guildComboBox" ItemsSource="{Binding GuildsComboBox}" 
+                      Height="30" DockPanel.Dock="Left" VerticalAlignment="Center" 
+                      MaxDropDownHeight="400" Width="200" 
+                      MouseEnter="LoadServers" SelectionChanged="OnServerSelected">
                 <ComboBox.ItemTemplate >
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
                             <Image Source="{Binding Image}" Width="25" Height="25"/>
-                            <TextBlock Margin="7,0,0,0" Text="{Binding Name}" VerticalAlignment="Center"/>
+                            <TextBlock  Margin="7,0,0,0" Text="{Binding Name}" VerticalAlignment="Center"/>
                         </StackPanel>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
+
+            <Button Name = "_refreshServerList" Margin="10,0,0,0"
+                     ToolTip="Refresh server list" ToolTipService.InitialShowDelay="1000"
+                    Click="LoadServers" Width="30" Height="30">
+                <Image Source="/Images/exit2.png" Width="10"/>
+            </Button>
+
+        </DockPanel>
+
+        <DockPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="13"
+                   HorizontalAlignment="Center" VerticalAlignment="Center">
+
+            <ComboBox Name="_channelComboBox" MaxDropDownHeight="400" 
+                      DockPanel.Dock="Top" VerticalAlignment="Center" 
+                      Height="30" Width="240" VerticalContentAlignment="Center" 
+                      Padding="10,3,5,3" >
+            </ComboBox>
+
+            <Button Name = "_addFolder" Margin="0,10,0,0" IsEnabled="False"
+                    ToolTip="Browse Folders" ToolTipService.InitialShowDelay="1000"
+                    Click="BrowseFolders" Width="120" Height="30">
+                Browse For Folder
+                <!-- <Image Source="/Images/exit2.png" Width="10"/> -->
+            </Button>
+            
+        </DockPanel>
+
+
+
+        <TextBlock Name="_folderDetails" Grid.Row="4" Grid.Column="1" VerticalAlignment="Bottom"
+                   HorizontalAlignment="Left" Text="" Opacity="0.5"
+                    />
+        <StackPanel Name="_folderStackPanel"
+                    Orientation="Vertical" Background="#36393f" 
+                    Grid.Row="5" Grid.Column="1" Opacity="1" >
+
         </StackPanel>
 
 
-        <TextBlock Name="_windowMessage" Text="If you see this message, something is wrong." Grid.ColumnSpan="2" 
-                   Grid.Row="2" Grid.Column="0" Margin="15,5,0,0" Grid.RowSpan="1" HorizontalAlignment="Left"/>
-
-        <TextBox Name = "_path" IsEnabled="False" Grid.Row="2" Grid.Column = "3" Grid.ColumnSpan="4"  
-                 Text = "{Binding DebugText, Mode = TwoWay}" Margin="10,5,10,5" />
-
+            <Button  Name = "_cancelSyncButton" Grid.Row="5" Grid.Column = "1" 
+                 Height="50" Width="200" Panel.ZIndex="20" HorizontalAlignment="Center"
+                 Content = "Click here to stop/pause" VerticalAlignment="Center" 
+                 Click="CancelSync" Visibility="Hidden"/>
 
 
-        <Button  Name = "_scanTokens" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="1"  
-                 Content = "Scan Tokens" Click="DetectToken" Margin = "20,5,20,5"/>
+        <ProgressBar Name="_progressBar" Orientation="Horizontal" VerticalAlignment="Top"
+                     Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                     Height="3" Background="Transparent"
+                     BorderThickness="0" Value="0" Foreground="#FF38BB25"/>
 
-        <Button  Name = "_loadServersButton" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" IsEnabled="False"
-                 Content = "Load Server List" Click="LoadServers" Margin = "50,5,50,5"/>
+        <ComboBox Name="_accountComboBox" ItemsSource="{Binding AccountsComboBox}" 
+                  Height="30" Width="240" MaxDropDownHeight="400"
+                  MouseEnter="DetectTokens" SelectionChanged="OnAccountSelected" 
+                  Visibility="Visible" Opacity="0"
+                  Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="13"
+                  HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                  ToolTip="Change user" ForceCursor="True" Cursor="Hand" >
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="{Binding Image}" Width="25" Height="25" Margin="2,5,0,5"/>
+                        <TextBlock Margin="7,0,0,0" Text="{Binding Name}" VerticalAlignment="Center" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+            <ComboBox.ItemContainerStyle>
+                <Style TargetType="ComboBoxItem">
+                    <Setter Property="IsEnabled"  Value="{Binding IsSelectable}" />
+                </Style>
+            </ComboBox.ItemContainerStyle>
+        </ComboBox>
 
-
-
-        <Button  Name = "_browseFolderButton" Grid.Row="3" Grid.ColumnSpan="2"  Grid.Column = "4" 
-                 Content = "BrowseFolders" Click="BrowseFolders" Margin = "42,5,70,5"/>
-
-        <Button  Name = "_addChannelButton" Grid.Row="3" Grid.ColumnSpan="2"  Grid.Column = "5" 
-                 Content = "Add Channel" Click="AddChannel" IsEnabled="False" Margin = "70,5,70,5"/>
-
-
-
-        <Button  Name = "_cancelSyncButton" Grid.Row="3" Grid.ColumnSpan="2"  Grid.Column = "7" 
-                 Content = "Cancel/Pause" Click="CancelSync" IsEnabled="False" Margin = "70,5,70,5"/>
-
-        <Button  Name = "_syncFolderButton" Grid.Row="3" Grid.ColumnSpan="2"  Grid.Column = "8" 
-                 Content = "Sync Selected" Click="SyncPress" IsEnabled="False" Margin = "70,5,70,5"/>
-
-
-
-        <ListBox x:Name="_serverList" Grid.Row="4" Grid.RowSpan="3" BorderThickness="0"
-                 Grid.Column = "1" Grid.ColumnSpan="2" Background="#36393f"
-                 SelectionMode="Single" Margin="10,10,10,10" >
-        </ListBox>
-
-        <ListBox x:Name="_channelList" Grid.Row="4" Grid.RowSpan="3"  BorderThickness="0"
-                 Grid.Column = "3" Grid.ColumnSpan="4"  Background="#36393f" 
-                 SelectionMode="Single" Margin="10,10,10,10" >
-        </ListBox>
-
-        <ListBox x:Name="_folderList" Grid.Row="4" Grid.RowSpan="3"  BorderThickness="0"
-                 Grid.Column = "7" Grid.ColumnSpan="3"  Background="#36393f"
-                 SelectionMode="Single" Margin="10,10,10,10" >
-        </ListBox>
-
-        <ListBox x:Name="_accList" Grid.Row="4" Background="#36393f" BorderThickness="0"
-                 Grid.Column = "0" Grid.ColumnSpan="1"  
-                 SelectionMode="Single" Margin="10,10,10,10" >
-        </ListBox>
-
-        <Button  Name = "_selectAccButton" Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="1"  
-                 Content = "Select Account" Click="SelectAccount" Margin = "20,5,20,5"/>
     </Grid>
 
 </Window>
