@@ -268,7 +268,8 @@
         <Button Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="6" BorderThickness="0"
                 HorizontalAlignment="Right" VerticalAlignment="Bottom"
                 Height="22" Background="#f04747" Margin="0" Name="_deleteButton"
-                Style="{StaticResource DeleteButton}" Visibility="Hidden" >
+                Style="{StaticResource DeleteButton}" Visibility="Hidden" 
+                Cursor="Hand" >
             <TextBlock Name="_deleteButtonText" Margin="10,0,10,0" 
                        Text="Remove #test"/>
         </Button>

@@ -37,9 +37,9 @@ namespace ImageFolderSync
         {
             // if list is empty and you hover over it, then load it, otherwise dont trigger loading
             if (sender is ComboBox && GuildsComboBox.Count != 0) return;
+            if (_refreshServerList.IsEnabled == false) return;
             if (_username.Text == "") return;
 
-            //MessageBox.Show("Sync.");
             this._refreshServerList.IsEnabled = false;
 
             // read file into a string and deserialize JSON to a type
@@ -67,9 +67,10 @@ namespace ImageFolderSync
                     };
 
                     GuildsComboBox.Add(itp);
+                    GuildsComboBox = OrderViewGuild(GuildsComboBox);
 
-                    //GuildsComboBox = new ObservableCollection<ImageTextPair>(GuildsComboBox.OrderBy(i => i.Text));
-                    //await Task.Delay(1); // not needed, but visualizing looks cool
+                    // not needed, but visualizing looks cool
+                    // await Task.Delay(1); 
                 }
             }
             catch (Exception ex)
@@ -77,8 +78,18 @@ namespace ImageFolderSync
                 MessageBox.Show(ex.Message);
             }
 
+
             await Task.Delay(3000); // dont spam this button 
             this._refreshServerList.IsEnabled = true;
+        }
+
+        public ObservableCollection<ViewGuild> OrderViewGuild(ObservableCollection<ViewGuild> orderThoseGroups)
+        {
+            ObservableCollection<ViewGuild> temp;
+            temp = new ObservableCollection<ViewGuild>(orderThoseGroups.OrderBy(p => p.Name));
+            orderThoseGroups.Clear();
+            foreach (ViewGuild j in temp) orderThoseGroups.Add(j);
+            return orderThoseGroups;
         }
 
         public void BrowseFolders(object sender, RoutedEventArgs e)
@@ -132,6 +143,16 @@ namespace ImageFolderSync
             }
             else
             {
+                MessageBoxImage mbi = new MessageBoxImage();
+                string desc = $"This action will overwrite channel's save path, however the program will still download new images from where it left off.\nDo you wish to continue?";
+
+                // should be custom messagebox... but meh
+                MessageBoxResult result = MessageBox.Show(desc, "This channel already has a folder set-up", MessageBoxButton.YesNo, mbi, MessageBoxResult.Yes);
+
+                if (result == MessageBoxResult.No) return;
+                
+                config.ChConfig = chConfig;
+
                 chConfig.list[channelID] = new ChannelConfig.Values()
                 {
                     IconUrl = serverItem.ImageUrl,
@@ -139,11 +160,12 @@ namespace ImageFolderSync
                     ChannelName = channelName,
                     GuildId = serverItem.Id,
                     ChannelId = channelID,
-                    LastMsgChecked = null,
+                    LastMsgChecked = chConfig.list[channelID].LastMsgChecked,
                     SavePath = path,
-                    ImagesSaved = 0,
+                    ImagesSaved = chConfig.list[channelID].ImagesSaved,
                     Color = color
                 };
+            
             }
 
             config.ChConfig = chConfig;

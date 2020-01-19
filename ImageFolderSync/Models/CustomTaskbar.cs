@@ -1,16 +1,10 @@
 ﻿using Hardcodet.Wpf.TaskbarNotification;
 using ImageFolderSync.Helpers;
 using System;
-using System.Collections.ObjectModel;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Markup;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Resources;
-using System.Xml;
 
 namespace ImageFolderSync.UI
 {
@@ -126,8 +120,18 @@ namespace ImageFolderSync.UI
             }
         }
 
+        public void EnableSyncButtons()
+        {
+            foldersListitem.Header = "Sync...";
+            foldersListitem.IsEnabled = true;
+        }
+
         private void StartSyncFromTray(object sender, RoutedEventArgs e)
         {
+            MenuItem item = sender as MenuItem;
+
+            foldersListitem.Header = $"Syncing #{item.Header}...";
+            foldersListitem.IsEnabled = false;
             //MenuItem menuItem = sender as MenuItem;
             MainWindow._instance.SyncPress(sender, e);
         }

@@ -10,7 +10,6 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
-using ImageFolderSync.DiscordClasses;
 
 namespace ImageFolderSync
 {
@@ -22,7 +21,7 @@ namespace ImageFolderSync
             AfterSyncing
         }
 
-        public void ChangeMainWindowState(CustomWindowStates s)
+        private void ChangeMainWindowState(CustomWindowStates s)
         {
             if (s == CustomWindowStates.Syncing)
             {
@@ -57,6 +56,7 @@ namespace ImageFolderSync
                 _progressBar.Value = 0;
                 _bgImage.Source = null;
                 _cancelFlag = false;
+                myTray.EnableSyncButtons();
             }
         }
 
@@ -187,10 +187,11 @@ namespace ImageFolderSync
                                 string json = JsonConvert.SerializeObject(config, Formatting.Indented);
                                 byte[] fileContent = Encoding.UTF8.GetBytes(json);
 
+                                ApplyValidBgImg(extension, dlPath, thisConfig.IconUrl);
+
                                 Atomic.OverwriteFile("config.json", new MemoryStream(fileContent), "config.json.backup");
                                 UpdateFolderGrid();
 
-                                ApplyValidBgImg(extension, dlPath, thisConfig.IconUrl);
                             }
                             catch (Exception ex)
                             {
@@ -225,10 +226,11 @@ namespace ImageFolderSync
                                     string json = JsonConvert.SerializeObject(config, Formatting.Indented);
                                     byte[] fileContent = Encoding.UTF8.GetBytes(json);
 
+                                    ApplyValidBgImg(extension, dlPath, thisConfig.IconUrl);
+
                                     Atomic.OverwriteFile("config.json", new MemoryStream(fileContent), "config.json.backup");
                                     UpdateFolderGrid();
 
-                                    ApplyValidBgImg(extension, dlPath, thisConfig.IconUrl);
                                 }
                                 catch (Exception exc)
                                 {
@@ -269,6 +271,11 @@ namespace ImageFolderSync
 
                                 dlPath = string.Format(@"{0}/{1}_{3}{2}", thisConfig.SavePath, filename, extension, fileIndex);
                             }
+
+                            if (msgCount == 1 && fileIndex > 0) continue;
+                            // special case if its duplicate on first dl message, should happen only when attempting to do already synced channel
+                            // since the download is Atomic and last msg id is updated AFTER download, it means we have the image from last msg id
+                            // (UNLESS ITS OUT FIRST TIME - LastMsgChecked null check) // thisConfig.LastMsgChecked != null &&  ????
 
                             try
                             {

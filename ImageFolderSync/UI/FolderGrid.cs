@@ -58,7 +58,6 @@ namespace ImageFolderSync
             _old = itemsPerRow;
         }
 
-
         public void RemoveFolder(object sender, RoutedEventArgs e)
         {
 
