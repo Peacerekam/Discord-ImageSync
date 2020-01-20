@@ -227,10 +227,11 @@ namespace ImageFolderSync
                                     string json = JsonConvert.SerializeObject(config, Formatting.Indented);
                                     byte[] fileContent = Encoding.UTF8.GetBytes(json);
 
-                                    ApplyValidBgImg(extension, dlPath, thisConfig.IconUrl);
 
                                     Atomic.OverwriteFile("config.json", new MemoryStream(fileContent), "config.json.backup");
-                                    UpdateFolderGrid();
+                                    //UpdateFolderGrid();
+
+                                    ApplyValidBgImg(extension, dlPath, thisConfig.IconUrl);
 
                                 }
                                 catch (Exception exc)
@@ -291,8 +292,9 @@ namespace ImageFolderSync
                                 string json = JsonConvert.SerializeObject(config, Formatting.Indented);
                                 byte[] fileContent = Encoding.UTF8.GetBytes(json);
 
+
                                 Atomic.OverwriteFile("config.json", new MemoryStream(fileContent), "config.json.backup");
-                                UpdateFolderGrid();
+                                //UpdateFolderGrid();
 
                                 ApplyValidBgImg(extension, dlPath, thisConfig.IconUrl);
 
@@ -331,15 +333,26 @@ namespace ImageFolderSync
         {
             string[] imageExts = { "png", "gif", "jpg", "jpeg" };
 
-            for (int i = 0; i < imageExts.Length; i++)
+            try
             {
-                if (ext.Contains(imageExts[i]))
+                for (int i = 0; i < imageExts.Length; i++)
                 {
-                    _bgImage.Source = new BitmapImage(new Uri(sourcePath));
-                    return;
+                    if (ext.Contains(imageExts[i]))
+                    {
+                        _bgImage.Source = new BitmapImage(new Uri(sourcePath));
+                        return;
+                    }
                 }
+                _bgImage.Source = new BitmapImage(new Uri(alter));
+            } 
+            catch (Exception ex)
+            {
+                // this whole try catch is a failsafe because very old gelbooru links look like proper direct image links
+                // yet they lead to their regular site, this app will still download the file thats prob a .html and it would freak out
+                // ill look into a better solution later
+                _bgImage.Source = new BitmapImage(new Uri(alter));
             }
-            _bgImage.Source = new BitmapImage(new Uri(alter));
+
         }
 
         public void CancelSync(object sender, RoutedEventArgs e)

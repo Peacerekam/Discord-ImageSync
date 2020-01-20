@@ -77,15 +77,6 @@ namespace ImageFolderSync.Helpers
             }
             catch
             {
-                try
-                {
-                    //File.Delete(tempFilePath);
-                }
-                catch
-                {
-                    // total fail, whatever
-                }
-
                 throw;
             }
         }
