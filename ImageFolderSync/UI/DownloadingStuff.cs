@@ -331,6 +331,13 @@ namespace ImageFolderSync
 
         private void ApplyValidBgImg(string ext, string sourcePath, string alter)
         {
+            if (Application.Current.MainWindow.Visibility == Visibility.Hidden || this.WindowState == WindowState.Minimized)
+            {
+                // dont bother doing this if app is hidden or minimized
+                // this probably helps performance in some way? it should, right?
+                return;
+            }
+
             string[] imageExts = { "png", "gif", "jpg", "jpeg" };
 
             try
