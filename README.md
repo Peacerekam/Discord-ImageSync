@@ -1,6 +1,6 @@
 # Discord-ImageSync
 
-Trying ot learn something new. Needs tons of code refactoring as it is my first non-Unity C# project.
+Trying to learn something new. Needs tons of code refactoring as it is my first non-Unity C# project.
 
 <img src="https://cdn.discordapp.com/attachments/282208855289495554/668862076013379584/ss22.gif"><img src="https://cdn.discordapp.com/attachments/282208855289495554/668861658466091008/ss2.gif">
 
