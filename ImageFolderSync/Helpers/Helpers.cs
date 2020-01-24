@@ -62,8 +62,15 @@ namespace ImageFolderSync.Helpers
                 if (p.Length - filename.Length < 200)
                 {
                     filename = filename.Length > 30 ? filename.Substring(0, 30) : filename;
-                    p = string.Format(@"{0}/{1}{3}.{2}", savePath, filename, extension, fileIndex);
                 }
+
+                // no media extension should really be longer than 4 chars...
+                if (extension.Length > 4)
+                {
+                    extension = extension.Substring(0, 4);
+                }
+
+                p = string.Format(@"{0}/{1}{3}.{2}", savePath, filename, extension, fileIndex);
             }
 
             return p;
