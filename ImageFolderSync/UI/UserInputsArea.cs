@@ -403,16 +403,16 @@ namespace ImageFolderSync
             }
         }
 
-        private Uri GetAvatarUri(JToken jt)
+        private Uri GetAvatarUri(JToken user)
         {
-            string? av = (string?)jt["avatar"];
+            string? av = (string?)user["avatar"];
 
             if (av == null)
             {
-                av = ((float)jt["discriminator"] % 5).ToString();
+                av = ((float)user["discriminator"] % 5).ToString();
             }
 
-            return new Uri(string.Format("https://cdn.discordapp.com/avatars/{0}/{1}.png", jt["id"], av));
+            return new Uri(string.Format("https://cdn.discordapp.com/avatars/{0}/{1}.png", user["id"], av));
         }
 
     }

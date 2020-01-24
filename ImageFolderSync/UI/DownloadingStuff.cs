@@ -157,16 +157,16 @@ namespace ImageFolderSync
                             }
 
                             string[] splitFilename = baseUrl.Split("/")[^1].Split(".");
-                            string extension = Stuff.RemoveInvalids(splitFilename[^1].Split(":")[0].Split("?")[0]); // last array element + anti twitter garbage + anti resize garbage
+                            string extension = Stuff.RemoveInvalids(splitFilename[^1]);
                             string filename = Stuff.RemoveInvalids(string.Join(".", splitFilename.Take(splitFilename.Count() - 1)));
-                            string dlPath = Stuff.FixGarbageUrlsIntoPath(thisConfig.SavePath, filename, extension); //string.Format(@"{0}/{1}.{2}", thisConfig.SavePath, filename, extension);
+                            string dlPath = Stuff.CreateValidFilepath(thisConfig.SavePath, filename, extension); //string.Format(@"{0}/{1}.{2}", thisConfig.SavePath, filename, extension);
 
                             int fileIndex = 0;
 
                             while (File.Exists(dlPath) && new FileInfo(dlPath).Length > 0)
                             {
                                 fileIndex++;
-                                dlPath = Stuff.FixGarbageUrlsIntoPath(thisConfig.SavePath, filename, extension, "" + fileIndex);
+                                dlPath = Stuff.CreateValidFilepath(thisConfig.SavePath, filename, extension, "" + fileIndex);
                             }
 
                             if (msgCount == 1 && fileIndex > 0) continue;
@@ -188,10 +188,11 @@ namespace ImageFolderSync
                                 string json = JsonConvert.SerializeObject(config, Formatting.Indented);
                                 byte[] fileContent = Encoding.UTF8.GetBytes(json);
 
-                                ApplyValidBgImg(extension, dlPath, thisConfig.IconUrl);
 
                                 Atomic.OverwriteFile("config.json", new MemoryStream(fileContent), "config.json.backup");
-                                UpdateFolderGrid();
+                                ApplyValidBgImg(extension, dlPath, thisConfig.IconUrl);
+
+                                //UpdateFolderGrid();
 
                             }
                             catch (Exception ex)
@@ -229,9 +230,9 @@ namespace ImageFolderSync
 
 
                                     Atomic.OverwriteFile("config.json", new MemoryStream(fileContent), "config.json.backup");
-                                    //UpdateFolderGrid();
-
                                     ApplyValidBgImg(extension, dlPath, thisConfig.IconUrl);
+
+                                    //UpdateFolderGrid();
 
                                 }
                                 catch (Exception exc)
@@ -271,7 +272,7 @@ namespace ImageFolderSync
                                 extension = Stuff.RemoveInvalids("." + splitFilename[^1]); // last array element
                                 string filename = Stuff.RemoveInvalids(msg.Attachments[i].FileName.Replace(extension, ""));
 
-                                dlPath = string.Format(@"{0}/{1}_{3}{2}", thisConfig.SavePath, filename, extension, fileIndex);
+                                dlPath = string.Format(@"{0}/{1}-duplicate-{3}{2}", thisConfig.SavePath, filename, extension, fileIndex);
                             }
 
                             if (msgCount == 1 && fileIndex > 0) continue;
@@ -294,9 +295,9 @@ namespace ImageFolderSync
 
 
                                 Atomic.OverwriteFile("config.json", new MemoryStream(fileContent), "config.json.backup");
-                                //UpdateFolderGrid();
-
                                 ApplyValidBgImg(extension, dlPath, thisConfig.IconUrl);
+
+                                //UpdateFolderGrid();
 
                             }
                             catch (Exception ex)
@@ -340,11 +341,26 @@ namespace ImageFolderSync
 
             string[] imageExts = { "png", "gif", "jpg", "jpeg" };
 
+
+            /*  this obviously looks way better but extensions can be weird
+             *  in theory i already take care of twitter "img.png:large" garbo and "img.png?height=..." stuff, but idk, ill see tomorrow
+
+            if (imageExts.Contains(ext.ToLower()))
+            {
+                _bgImage.Source = new BitmapImage(new Uri(sourcePath));
+            }
+            else
+            {
+                _bgImage.Source = new BitmapImage(new Uri(alter));
+            }
+
+            */
+
             try
             {
                 for (int i = 0; i < imageExts.Length; i++)
                 {
-                    if (ext.Contains(imageExts[i]))
+                    if (ext.ToLower().Contains(imageExts[i]))
                     {
                         _bgImage.Source = new BitmapImage(new Uri(sourcePath));
                         return;

@@ -29,7 +29,10 @@ namespace ImageFolderSync.Helpers
         {
             char[] invalidChars = Path.GetInvalidFileNameChars();
 
-            if (p.IndexOfAny(invalidChars) > 0)
+            // cut off any anti twitter garbage + anti resize garbage
+            p = p.Split(":")[0].Split("?")[0].Split("&")[0]; 
+
+            if (p.IndexOfAny(invalidChars) > -1)
             {
                 for (int i = 0; i < invalidChars.Length; i++)
                 {
@@ -40,9 +43,17 @@ namespace ImageFolderSync.Helpers
             return p;
         }
 
-        public static string FixGarbageUrlsIntoPath(string savePath, string filename, string extension, string? fileIndex = null)
+        public static string CreateValidFilepath(string savePath, string filename, string extension, string? fileIndex = null)
         {
-            fileIndex = fileIndex == null ? "" : "_" + fileIndex;
+            for (int i = 0; i < mediaExt.Length; i++)
+            {
+                if (extension.Contains(mediaExt[i]))
+                {
+                    extension = mediaExt[i];
+                }
+            }
+
+            fileIndex = fileIndex == null ? "" : "-duplicate-" + fileIndex;
             string p = string.Format(@"{0}/{1}{3}.{2}", savePath, filename, extension, fileIndex);
 
             if (p.Length > 200)
@@ -53,40 +64,9 @@ namespace ImageFolderSync.Helpers
                     filename = filename.Length > 30 ? filename.Substring(0, 30) : filename;
                     p = string.Format(@"{0}/{1}{3}.{2}", savePath, filename, extension, fileIndex);
                 }
-
-                // without extension
-                if (p.Length - extension.Length < 200)
-                {
-                    string newExt = "png";
-
-                    for (int i = 0; i < mediaExt.Length; i++)
-                    {
-                        if (extension.Contains(mediaExt[i]))
-                        {
-                            newExt = mediaExt[i];
-                        }
-                    }
-                    p = string.Format(@"{0}/{1}{3}.{2}", savePath, filename, newExt, fileIndex);
-                }
-
-                return p;
-            }
-            else 
-            {
-                for (int i = 0; i < mediaExt.Length; i++)
-                {
-                    if (extension.Contains(mediaExt[i]))
-                    {
-                        // extension seems to be media, so lets return it
-                        return p;
-                    }
-                }
-
-                // save as .png because that better than random chars
-                p = string.Format(@"{0}/{1}{3}.{2}", savePath, filename, "png", fileIndex);
-                return p;
             }
 
+            return p;
         }
 
     }
