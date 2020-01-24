@@ -45,16 +45,18 @@ namespace ImageFolderSync.Helpers
 
         public static string CreateValidFilepath(string savePath, string filename, string extension, string? fileIndex = null)
         {
+            string newExtension = "png";
+
             for (int i = 0; i < mediaExt.Length; i++)
             {
                 if (extension.Contains(mediaExt[i]))
                 {
-                    extension = mediaExt[i];
+                    newExtension = mediaExt[i];
                 }
             }
 
             fileIndex = fileIndex == null ? "" : "-duplicate-" + fileIndex;
-            string p = string.Format(@"{0}/{1}{3}.{2}", savePath, filename, extension, fileIndex);
+            string p = string.Format(@"{0}/{1}{3}.{2}", savePath, filename, newExtension, fileIndex);
 
             if (p.Length > 200)
             {
@@ -64,13 +66,7 @@ namespace ImageFolderSync.Helpers
                     filename = filename.Length > 30 ? filename.Substring(0, 30) : filename;
                 }
 
-                // no media extension should really be longer than 4 chars...
-                if (extension.Length > 4)
-                {
-                    extension = extension.Substring(0, 4);
-                }
-
-                p = string.Format(@"{0}/{1}{3}.{2}", savePath, filename, extension, fileIndex);
+                p = string.Format(@"{0}/{1}{3}.{2}", savePath, filename, newExtension, fileIndex);
             }
 
             return p;
