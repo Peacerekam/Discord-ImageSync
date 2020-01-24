@@ -16,7 +16,7 @@ namespace ImageFolderSync.Helpers
 
             for (int i = 0; i < mediaExt.Length; i++)
             {
-                if (u.Contains($".{mediaExt[i]}")) // .png .gif .jpg   and so on
+                if (u.ToLower().Contains($".{mediaExt[i]}")) // .png .gif .jpg   and so on
                 {
                     return true;
                 }
@@ -49,7 +49,7 @@ namespace ImageFolderSync.Helpers
 
             for (int i = 0; i < mediaExt.Length; i++)
             {
-                if (extension.Contains(mediaExt[i]))
+                if (extension.ToLower().Contains(mediaExt[i]))
                 {
                     newExtension = mediaExt[i];
                 }
