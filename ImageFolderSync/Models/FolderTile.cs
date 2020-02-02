@@ -102,6 +102,11 @@ namespace ImageFolderSync.Helpers
             }
             else if (e.RightButton == MouseButtonState.Pressed)
             {
+                // to-do:
+                // on right change icon to "browsing" icon
+                // also show a "delete" icon in the corner of the tile
+                // i'd like to show "last downloaded timestamp" in here
+
                 if (!Directory.Exists(MyConfig.SavePath))
                 {
                     MessageBox.Show("Couldn't find the directory");

@@ -116,7 +116,7 @@ namespace ImageFolderSync
         }
 
         public async IAsyncEnumerable<Message> GetMessagesAsync(string token, string channelId,
-            DateTimeOffset? after = null, string? startingPoint = null, DateTimeOffset? before = null, IProgress<double>? progress = null)
+            DateTimeOffset? after = null, DateTimeOffset? before = null, IProgress<double>? progress = null)
         {
             // Get the last message
             var lastMessage = await GetLastMessageAsync(token, channelId, before);
@@ -131,8 +131,7 @@ namespace ImageFolderSync
             // Get other messages
             var firstMessage = default(Message);
 
-            //var nextId = after?.ToSnowflake() ?? "0";
-            var nextId = startingPoint ?? "0";
+            var nextId = after?.ToSnowflake() ?? "0"; 
 
             while (true)
             {

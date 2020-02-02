@@ -65,6 +65,7 @@ namespace ImageFolderSync
             ChangeMainWindowState(CustomWindowStates.Syncing);
 
             string channelID;
+            DateTimeOffset? _startedFrom = null;
 
             if (sender is MenuItem mi)
             {
@@ -83,7 +84,8 @@ namespace ImageFolderSync
             }
 
             ChannelConfig.Values thisConfig = chConfig.list[channelID];
-            this._cancelSyncButton.Content = $"Syncing #{thisConfig.ChannelName.Split(" > ")[^1]}...\nClick here to pause/cancel";
+            string cancelContent = $"Syncing #{thisConfig.ChannelName.Split(" > ")[^1]}...\nClick here to pause/cancel";
+            this._cancelSyncButtonText.Text = cancelContent;
 
             //DetectToken();
 
@@ -93,9 +95,9 @@ namespace ImageFolderSync
                 ChangeMainWindowState(CustomWindowStates.AfterSyncing);
                 return;
             }
-
+            string trayHeader = $"Syncing #{thisConfig.ChannelName.Split(" > ")[^1]}...";
             myTray.tbi.ToolTipText = "Syncing " + thisConfig.ChannelName;
-            myTray.foldersListitem.Header = $"Syncing #{thisConfig.ChannelName.Split(" > ")[^1]}...";
+            myTray.foldersListitem.Header = trayHeader;
             myTray.foldersListitem.IsEnabled = false;
 
             WebClient wc = new WebClient();
@@ -105,7 +107,7 @@ namespace ImageFolderSync
 
 
             DiscordAPI d = new DiscordAPI();
-            var messages = d.GetMessagesAsync(config.Token, thisConfig.ChannelId, null, thisConfig.LastMsgChecked); // this._token.Text
+            var messages = d.GetMessagesAsync(config.Token, thisConfig.ChannelId, thisConfig.LastMsgChecked); // this._token.Text
 
             int msgCount = 0;
             int mediaCount = 0;
@@ -122,6 +124,13 @@ namespace ImageFolderSync
                     }
 
                     msgCount++;
+
+                    if (_startedFrom == null) _startedFrom = msg.Timestamp;
+
+                    string progress = EstimateProgress((DateTimeOffset)_startedFrom, msg.Timestamp);
+                    string date = GetDateFromTimestamp(msg.Timestamp);
+                    this._cancelSyncButtonText.Text = $"Progress: {progress} ({date})\n\n{cancelContent}";
+                    myTray.foldersListitem.Header = $"{trayHeader} {progress}";
 
                     if (msg.Embeds.Count > 0)
                     {
@@ -176,13 +185,13 @@ namespace ImageFolderSync
 
                             try
                             {
-
                                 baseUrl = baseUrl.Split("?")[0].Split("%3A")[0]; // anti resize garbage
 
                                 await Atomic.DownloadFile(wc, dlPath, baseUrl);
                                 mediaCount++;
 
-                                chConfig.UpdateLastMessage(channelID, msg.Id, 1);
+                                //chConfig.UpdateLastMessage(channelID, msg.Id, 1);
+                                chConfig.UpdateLastMessage(channelID, msg.Timestamp, 1);
                                 config.ChConfig = chConfig;
 
                                 string json = JsonConvert.SerializeObject(config, Formatting.Indented);
@@ -222,7 +231,8 @@ namespace ImageFolderSync
                                     await Atomic.DownloadFile(wc, dlPath, proxyDlLink);
                                     mediaCount++;
 
-                                    chConfig.UpdateLastMessage(channelID, msg.Id, 1);
+                                    //chConfig.UpdateLastMessage(channelID, msg.Id, 1);
+                                    chConfig.UpdateLastMessage(channelID, msg.Timestamp, 1);
                                     config.ChConfig = chConfig;
 
                                     string json = JsonConvert.SerializeObject(config, Formatting.Indented);
@@ -287,7 +297,8 @@ namespace ImageFolderSync
                                 await Atomic.DownloadFile(wc, dlPath, baseUrl);
                                 mediaCount++;
 
-                                chConfig.UpdateLastMessage(channelID, msg.Id, 1);
+                                //chConfig.UpdateLastMessage(channelID, msg.Id, 1);
+                                chConfig.UpdateLastMessage(channelID, msg.Timestamp, 1);
                                 config.ChConfig = chConfig;
 
                                 string json = JsonConvert.SerializeObject(config, Formatting.Indented);
@@ -328,6 +339,20 @@ namespace ImageFolderSync
 
             ChangeMainWindowState(CustomWindowStates.AfterSyncing);
 
+        }
+
+        private string GetDateFromTimestamp(DateTimeOffset timestamp)
+        {
+            return $"{timestamp.Day} {((Months)timestamp.Month).ToString()} {timestamp.Year}";
+        }
+
+        private string EstimateProgress(DateTimeOffset start, DateTimeOffset then)
+        {
+            double longNow = DateTimeOffset.Now.Ticks - start.Ticks;
+            double longThen = then.Ticks - start.Ticks;
+            double result = Math.Round(longThen * 100 / longNow, 2);
+
+            return $"{result.ToString().Replace(",",".")}%";
         }
 
         private void ApplyValidBgImg(string ext, string sourcePath, string alter)
@@ -380,7 +405,7 @@ namespace ImageFolderSync
 
         public void CancelSync(object sender, RoutedEventArgs e)
         {
-            if (sender is Button b) b.Content = "Stopping the sync...";
+            if (sender is Button) _cancelSyncButtonText.Text = "Stopping the sync...";
 
             _cancelFlag = true;
         }

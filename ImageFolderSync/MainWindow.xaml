@@ -273,16 +273,19 @@
             <TextBlock Name="_deleteButtonText" Margin="10,0,10,0" 
                        Text="Remove #test"/>
         </Button>
-        
-        
 
-        
-        <Button  Name = "_cancelSyncButton" Grid.Row="5" Grid.Column = "1" 
-                Height="50" Width="200" Panel.ZIndex="20" HorizontalAlignment="Center"
-                Content = "Click here to stop/pause" VerticalAlignment="Center" 
-                Click="CancelSync" Visibility="Hidden"/>
 
-        
+
+
+        <Button Name = "_cancelSyncButton" Grid.Row="5" Grid.Column = "1" Panel.ZIndex="20" HorizontalAlignment="Center"
+                VerticalAlignment="Center" 
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                Click="CancelSync" Visibility="Hidden">
+            <TextBlock Name="_cancelSyncButtonText" Margin="15">
+                Placeholder
+            </TextBlock>
+        </Button>
+
         <ProgressBar Name="_progressBar" Orientation="Horizontal" VerticalAlignment="Top"
                      Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
                      Height="3" Background="Transparent"
