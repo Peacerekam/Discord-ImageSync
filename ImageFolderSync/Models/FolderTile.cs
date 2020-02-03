@@ -130,12 +130,13 @@ namespace ImageFolderSync.Helpers
                 if (!dict.ContainsKey(MyConfig.ChannelId))
                 {
                     DiscordAPI d = new DiscordAPI();
-                    newMedia = await d.SearchMediaInChannel(
-                            MainWindow._instance.config.Token,
-                            MainWindow._instance.chConfig.list[MyConfig.ChannelId]
-                        );
+                    newMedia = await d.SearchMediaInChannel(MainWindow._instance.config.Token, MainWindow._instance.chConfig.list[MyConfig.ChannelId] );
 
-                    dict.Add(MyConfig.ChannelId, newMedia.ToString());
+                    // check again cause async stuff
+                    if (!dict.ContainsKey(MyConfig.ChannelId))
+                    {
+                        dict.Add(MyConfig.ChannelId, newMedia.ToString());
+                    }
                 }
                 else
                 {
@@ -145,10 +146,7 @@ namespace ImageFolderSync.Helpers
             else
             {
                 DiscordAPI d = new DiscordAPI();
-                newMedia = await d.SearchMediaInChannel(
-                        MainWindow._instance.config.Token,
-                        MainWindow._instance.chConfig.list[MyConfig.ChannelId]
-                    );
+                newMedia = await d.SearchMediaInChannel(MainWindow._instance.config.Token, MainWindow._instance.chConfig.list[MyConfig.ChannelId] );
 
                 dict[MyConfig.ChannelId] = newMedia.ToString();
             }
@@ -156,15 +154,19 @@ namespace ImageFolderSync.Helpers
 
             if (newMedia > 0)
             {
-                string s = newMedia.ToString();
+                string s = $"{newMedia}";
 
                 Counter.Text = s;
                 CounterBg.Width = s.Length == 0 ? 0 : (7 + s.Length * 7);
+
+                this.ToolTip = $"Estimated around {newMedia} new files to download\n\n2x LMB : Start sync\n1x RMB : Open {MyConfig.SavePath}";
             }
             else
             {
                 Counter.Text = "";
                 CounterBg.Width = 0;
+
+                this.ToolTip = $"This folder seems to be up to date\n\n2x LMB : Start sync\n1x RMB : Open {MyConfig.SavePath}";
             }
 
         }
@@ -193,7 +195,7 @@ namespace ImageFolderSync.Helpers
 
                 if (!Directory.Exists(MyConfig.SavePath))
                 {
-                    MessageBox.Show("Couldn't find the directory");
+                    MessageBox.Show($"Couldn't find the directory\n{MyConfig.SavePath}");
                 }
                 else
                 {

@@ -64,8 +64,8 @@ namespace ImageFolderSync
         {
             ChangeMainWindowState(CustomWindowStates.Syncing);
 
-            DateTimeOffset? _finishedAt = null;
-            DateTimeOffset? _startedFrom = null;
+            string? _finishedAt = null;
+            string? _startedFrom = null;
             FolderTile? myFt = null;
             string channelID;
 
@@ -87,16 +87,17 @@ namespace ImageFolderSync
             }
 
             _bgImage.Source = new BitmapImage(new Uri(myFt.MyConfig.IconUrl));
-
+            
             ChannelConfig.Values thisConfig = chConfig.list[channelID];
             string cancelContent = $"Syncing #{thisConfig.ChannelName.Split(" > ")[^1]}...\nClick here to pause/cancel";
             this._cancelSyncButtonText.Text = cancelContent;
 
+            
             //DetectToken();
 
             if (!Directory.Exists(thisConfig.SavePath))
             {
-                MessageBox.Show("Couldn't find the save path");
+                MessageBox.Show($"Couldn't find the save path\n{thisConfig.SavePath}");
                 ChangeMainWindowState(CustomWindowStates.AfterSyncing);
                 return;
             }
@@ -128,20 +129,17 @@ namespace ImageFolderSync
                 {
                     if (_cancelFlag)
                     {
-                        if (myFt != null)
-                        {
-                            myFt.CheckForNewImages(true);
-                        }
-
+                        if (myFt != null) myFt.CheckForNewImages(true);
+                        
                         ChangeMainWindowState(CustomWindowStates.AfterSyncing);
                         return;
                     }
 
                     msgCount++;
 
-                    if (_startedFrom == null) _startedFrom = msg.Timestamp;
+                    if (_startedFrom == null) _startedFrom = msg.Id;
 
-                    string progress = EstimateProgress((DateTimeOffset)_startedFrom, msg.Timestamp);
+                    string progress = EstimateProgress(_startedFrom.FromSnowflakeToDate(), msg.Timestamp);
                     string date = GetDateFromTimestamp(msg.Timestamp);
                     this._cancelSyncButtonText.Text = $"Progress: {progress} ({date})\n\n{cancelContent}";
                     myTray.foldersListitem.Header = $"{trayHeader} {progress}";
@@ -205,7 +203,7 @@ namespace ImageFolderSync
                                 mediaCount++;
 
                                 //chConfig.UpdateLastMessage(channelID, msg.Id, 1);
-                                chConfig.UpdateLastMessage(channelID, msg.Timestamp, 1);
+                                chConfig.UpdateLastMessage(channelID, msg.Id, 1);
                                 config.ChConfig = chConfig;
 
                                 json = JsonConvert.SerializeObject(config, Formatting.Indented);
@@ -246,7 +244,7 @@ namespace ImageFolderSync
                                     mediaCount++;
 
                                     //chConfig.UpdateLastMessage(channelID, msg.Id, 1);
-                                    chConfig.UpdateLastMessage(channelID, msg.Timestamp, 1);
+                                    chConfig.UpdateLastMessage(channelID, msg.Id, 1);
                                     config.ChConfig = chConfig;
 
                                     json = JsonConvert.SerializeObject(config, Formatting.Indented);
@@ -312,7 +310,7 @@ namespace ImageFolderSync
                                 mediaCount++;
 
                                 //chConfig.UpdateLastMessage(channelID, msg.Id, 1);
-                                chConfig.UpdateLastMessage(channelID, msg.Timestamp, 1);
+                                chConfig.UpdateLastMessage(channelID, msg.Id, 1);
                                 config.ChConfig = chConfig;
 
                                 json = JsonConvert.SerializeObject(config, Formatting.Indented);
@@ -333,7 +331,7 @@ namespace ImageFolderSync
                         }
                     }
 
-                    _finishedAt = msg.Timestamp;
+                    _finishedAt = msg.Id;
                 }
 
             }

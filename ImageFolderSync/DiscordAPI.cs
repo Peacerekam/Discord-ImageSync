@@ -95,25 +95,23 @@ namespace ImageFolderSync
         public async Task<int> SearchMediaInChannel(string token, ChannelConfig.Values cfg)
         {
             JToken response;
+            string route = "";
 
             if (cfg.LastMsgChecked == null)
             {
-                response = await GetApiResponseAsync(
-                        token, 
-                        $"guilds/{cfg.GuildId}/messages/search?channel_id={cfg.ChannelId}&has=file&has=image&has=embed&has=link&include_nsfw=true"
-                    );
+                route = $"guilds/{cfg.GuildId}/messages/search?channel_id={cfg.ChannelId}&has=file&has=image&has=embed&has=link&include_nsfw=true";
             }
             else
             {
-                DateTimeOffset minDate = (DateTimeOffset)cfg.LastMsgChecked;
-
-                response = await GetApiResponseAsync(
-                        token, 
-                        $"guilds/{cfg.GuildId}/messages/search?channel_id={cfg.ChannelId}&has=file&has=image&has=embed&has=link&include_nsfw=true&min_id={minDate.ToSnowflake()}"
-                    );
+                //string minDate = ((DateTimeOffset)cfg.LastMsgChecked).ToSnowflake();
+                string minDate = cfg.LastMsgChecked;
+                route = $"guilds/{cfg.GuildId}/messages/search?channel_id={cfg.ChannelId}&has=file&has=image&has=embed&has=link&include_nsfw=true&min_id={minDate}";
             }
 
-            return (int)response["total_results"] - 1; // until i figure out the (somewhat rare) case of stuck ping
+            response = await GetApiResponseAsync(token, route);
+
+            // there doesn't seem to be any stuck pings when using snowflakes rather than timestamps
+            return (int)response["total_results"]; 
         }
 
         public async Task<IReadOnlyList<Channel>> GetGuildChannelsAsync(string token, string guildId)
@@ -128,11 +126,11 @@ namespace ImageFolderSync
             return channels;
         }
 
-        private async Task<Message> GetLastMessageAsync(string token, string channelId, DateTimeOffset? before = null)
+        private async Task<Message> GetLastMessageAsync(string token, string channelId, string? before = null)
         {
             var route = $"channels/{channelId}/messages?limit=1";
             if (before != null)
-                route += $"&before={before.Value.ToSnowflake()}";
+                route += $"&before={before}";
 
             var response = await GetApiResponseAsync(token, route);
 
@@ -140,13 +138,15 @@ namespace ImageFolderSync
         }
 
         public async IAsyncEnumerable<Message> GetMessagesAsync(string token, string channelId,
-            DateTimeOffset? after = null, DateTimeOffset? before = null, IProgress<double>? progress = null)
+            string? after = null, string? before = null, IProgress<double>? progress = null)
         {
             // Get the last message
             var lastMessage = await GetLastMessageAsync(token, channelId, before);
 
+            after = after ?? "0";
+
             // If the last message doesn't exist or it's outside of range - return
-            if (lastMessage == null || lastMessage.Timestamp < after)
+            if (lastMessage == null || lastMessage.Timestamp < after.FromSnowflakeToDate())
             {
                 progress?.Report(1);
                 yield break;
@@ -155,13 +155,13 @@ namespace ImageFolderSync
             // Get other messages
             var firstMessage = default(Message);
 
-            var nextId = after?.ToSnowflake() ?? "0"; 
+            //var nextId = after?.ToSnowflake() ?? "0";
 
             while (true)
             {
                 // Get message batch
                 //var route = $"channels/{channelId}/messages?limit=100&after={nextId}";
-                var route = $"channels/{channelId}/messages?limit=100&after={nextId}";
+                var route = $"channels/{channelId}/messages?limit=100&after={after}";
                 var response = await GetApiResponseAsync(token, route);
 
                 // Parse
@@ -190,7 +190,7 @@ namespace ImageFolderSync
                                      (lastMessage.Timestamp - firstMessage.Timestamp).TotalSeconds);
 
                     yield return message;
-                    nextId = message.Id;
+                    after = message.Id;
                 }
 
                 // Break if messages were trimmed (which means the last message was encountered)

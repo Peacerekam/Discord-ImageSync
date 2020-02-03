@@ -15,7 +15,7 @@ namespace ImageFolderSync.Helpers
 
         }
 
-        public void UpdateLastMessage(string key, DateTimeOffset? lastMsg, int pics) // DateTimeOffset lastMsg)
+        public void UpdateLastMessage(string key, string? lastMsg, int pics) // DateTimeOffset lastMsg)
         {
             list[key] = new Values()
             {
@@ -38,7 +38,7 @@ namespace ImageFolderSync.Helpers
             public string ChannelName;
             public string GuildId;
             public string ChannelId;
-            public DateTimeOffset? LastMsgChecked;
+            public string? LastMsgChecked;
             public string SavePath;
             public string Color;
             public int ImagesSaved;

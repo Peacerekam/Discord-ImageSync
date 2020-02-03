@@ -11,8 +11,8 @@ namespace ImageFolderSync
     public partial class MainWindow
     {
         private int _old;
-        public Dictionary<string, string> Counters = new Dictionary<string, string>();
-        public Dictionary<string, FolderTile> Tiles = new Dictionary<string, FolderTile>();
+        public Dictionary<string, string> Counters = new Dictionary<string, string>(); // to access tile's notification counter by its' channelID from anywhere
+        public Dictionary<string, FolderTile> Tiles = new Dictionary<string, FolderTile>(); // to access tile's object  by its' channelID from anywhere
 
         private void WindowSizeChanged(object sender, SizeChangedEventArgs e)
         {
