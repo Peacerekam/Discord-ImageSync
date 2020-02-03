@@ -1,5 +1,6 @@
 ﻿using ImageFolderSync.Helpers;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -9,7 +10,9 @@ namespace ImageFolderSync
 {
     public partial class MainWindow
     {
-        int _old;
+        private int _old;
+        public Dictionary<string, string> Counters = new Dictionary<string, string>();
+        public Dictionary<string, FolderTile> Tiles = new Dictionary<string, FolderTile>();
 
         private void WindowSizeChanged(object sender, SizeChangedEventArgs e)
         {
@@ -28,6 +31,7 @@ namespace ImageFolderSync
 
             if (_old == itemsPerRow && !forceUpdate) return; // dont update if its not needed, duh.
 
+            Tiles.Clear();
             _folderStackPanel.Children.Clear();
             StackPanel row = NewFolderRow();
 
@@ -38,6 +42,7 @@ namespace ImageFolderSync
             {
                 FolderTile ft = new FolderTile(ch.Value);
                 row.Children.Add(ft);
+                Tiles.Add(ch.Value.ChannelId, ft);
 
                 int col = index % itemsPerRow;
 
@@ -56,6 +61,11 @@ namespace ImageFolderSync
             }
 
             _old = itemsPerRow;
+        }
+
+        private void UpdateNewImageNotifierForAll()
+        {
+
         }
 
         public void RemoveFolder(object sender, RoutedEventArgs e)

@@ -19,8 +19,8 @@ namespace ImageFolderSync
         public static MainWindow _instance;
 
         private CustomTaskbar myTray;
-        private ChannelConfig chConfig;
-        private ConfigData config;
+        public ChannelConfig chConfig;
+        public ConfigData config;
 
         public MainWindow()
         {

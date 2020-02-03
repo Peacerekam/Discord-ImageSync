@@ -92,6 +92,30 @@ namespace ImageFolderSync
             return response;
         }
 
+        public async Task<int> SearchMediaInChannel(string token, ChannelConfig.Values cfg)
+        {
+            JToken response;
+
+            if (cfg.LastMsgChecked == null)
+            {
+                response = await GetApiResponseAsync(
+                        token, 
+                        $"guilds/{cfg.GuildId}/messages/search?channel_id={cfg.ChannelId}&has=file&has=image&has=embed&has=link&include_nsfw=true"
+                    );
+            }
+            else
+            {
+                DateTimeOffset minDate = (DateTimeOffset)cfg.LastMsgChecked;
+
+                response = await GetApiResponseAsync(
+                        token, 
+                        $"guilds/{cfg.GuildId}/messages/search?channel_id={cfg.ChannelId}&has=file&has=image&has=embed&has=link&include_nsfw=true&min_id={minDate.ToSnowflake()}"
+                    );
+            }
+
+            return (int)response["total_results"] - 1; // until i figure out the (somewhat rare) case of stuck ping
+        }
+
         public async Task<IReadOnlyList<Channel>> GetGuildChannelsAsync(string token, string guildId)
         {
             // Special case for direct messages pseudo-guild

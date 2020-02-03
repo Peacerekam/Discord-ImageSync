@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,6 +16,8 @@ namespace ImageFolderSync.Helpers
     {
         public ChannelConfig.Values MyConfig;
         private Image Image;
+        private TextBlock Counter;
+        private Border CounterBg;
 
         private BitmapImage syncIcon;
         private BitmapImage folderIcon;
@@ -28,7 +32,7 @@ namespace ImageFolderSync.Helpers
 
             folderIcon = new BitmapImage(new Uri(MyConfig.IconUrl));
             syncIcon = new BitmapImage(new Uri(@"pack://application:,,,/Images/icon.png"));
-            EllipseGeometry clipGeometry = new EllipseGeometry(new Point(25, 25), 25, 25);
+            EllipseGeometry imageClip = new EllipseGeometry(new Point(25, 25), 25, 25);
 
             /*
             normalEffect = new DropShadowEffect
@@ -48,6 +52,7 @@ namespace ImageFolderSync.Helpers
             };
             */
 
+
             Image = new Image
             {
                 Source = folderIcon,
@@ -55,9 +60,35 @@ namespace ImageFolderSync.Helpers
                 Height = 50,
                 Margin = new Thickness(27, 15, 27, 5),
                 //Effect = normalEffect,
-                Clip = clipGeometry
+                Clip = imageClip
             };
-            
+
+            Counter = new TextBlock
+            {
+                Text = "",
+                FontSize = 13,
+                Foreground = new SolidColorBrush(Colors.White),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+            };
+
+            CounterBg = new Border
+            {
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(0, 10, 25, 0),
+                Background = new SolidColorBrush(Colors.Red),
+                CornerRadius = new CornerRadius(4),
+                Height = 18,
+                Width = Counter.Text.Length == 0 ? 0 : (7 + Counter.Text.Length * 7)
+            };
+
+            CounterBg.Child = Counter;
+
+            Grid imageGrid = new Grid();
+            imageGrid.Children.Add(Image);
+            imageGrid.Children.Add(CounterBg);
+
             string rawChannelName = MyConfig.ChannelName.Split(" > ")[^1];
             TextBlock tb = new TextBlock
             {
@@ -71,17 +102,70 @@ namespace ImageFolderSync.Helpers
             this.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(MyConfig.Color));
             this.Background.Opacity = 0;
             this.HorizontalAlignment = HorizontalAlignment.Left;
-
             this.ToolTip = $"2x LMB : Start sync\n1x RMB : Open {MyConfig.SavePath}";
+
+            CheckForNewImages(false);
+
             this.Width = 104;
             this.Cursor = Cursors.Hand;
-            this.Children.Add(Image);
+            this.Children.Add(imageGrid);
             this.Children.Add(tb);
 
             this.MouseEnter += OnMouseEnter;
             this.MouseDown += OnMouseDown;
             this.MouseUp += OnMouseUp;
             this.MouseLeave += OnMouseLeave;
+
+        }
+
+        public async void CheckForNewImages(bool forced)
+        {
+            int newMedia = 0;
+            var dict = MainWindow._instance.Counters;
+
+            if (forced == false) {
+
+                //var myFt = dict.Keys.Single(tile => tile.MyConfig.ChannelId == MyConfig.ChannelId);
+
+                if (!dict.ContainsKey(MyConfig.ChannelId))
+                {
+                    DiscordAPI d = new DiscordAPI();
+                    newMedia = await d.SearchMediaInChannel(
+                            MainWindow._instance.config.Token,
+                            MainWindow._instance.chConfig.list[MyConfig.ChannelId]
+                        );
+
+                    dict.Add(MyConfig.ChannelId, newMedia.ToString());
+                }
+                else
+                {
+                    newMedia = int.Parse(dict[MyConfig.ChannelId]);
+                }
+            }
+            else
+            {
+                DiscordAPI d = new DiscordAPI();
+                newMedia = await d.SearchMediaInChannel(
+                        MainWindow._instance.config.Token,
+                        MainWindow._instance.chConfig.list[MyConfig.ChannelId]
+                    );
+
+                dict[MyConfig.ChannelId] = newMedia.ToString();
+            }
+
+
+            if (newMedia > 0)
+            {
+                string s = newMedia.ToString();
+
+                Counter.Text = s;
+                CounterBg.Width = s.Length == 0 ? 0 : (7 + s.Length * 7);
+            }
+            else
+            {
+                Counter.Text = "";
+                CounterBg.Width = 0;
+            }
 
         }
 
@@ -153,6 +237,8 @@ namespace ImageFolderSync.Helpers
             // testing some stuff
             //MainWindow._instance._folderDetails.Text = $"{MyConfig.SavePath} > {MyConfig.ImagesSaved}";
             //MainWindow._instance._folderDetails.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(MyConfig.Color));
+
+            //CheckForNewImages();
 
             this.Background.Opacity = 0.5;
             //Image.Effect = highlightedEffect;

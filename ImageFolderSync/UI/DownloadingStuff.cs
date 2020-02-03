@@ -64,17 +64,20 @@ namespace ImageFolderSync
         {
             ChangeMainWindowState(CustomWindowStates.Syncing);
 
-            string channelID;
+            DateTimeOffset? _finishedAt = null;
             DateTimeOffset? _startedFrom = null;
+            FolderTile? myFt = null;
+            string channelID;
 
             if (sender is MenuItem mi)
             {
                 channelID = mi.CommandParameter.ToString();
+                myFt = Tiles[channelID];
             }
             else if (sender is FolderTile ft)
             {
                 channelID = ft.MyConfig.ChannelId;
-                _bgImage.Source = new BitmapImage(new Uri(ft.MyConfig.IconUrl));
+                myFt = ft;
             }
             else
             {
@@ -82,6 +85,8 @@ namespace ImageFolderSync
                 ChangeMainWindowState(CustomWindowStates.AfterSyncing);
                 return;
             }
+
+            _bgImage.Source = new BitmapImage(new Uri(myFt.MyConfig.IconUrl));
 
             ChannelConfig.Values thisConfig = chConfig.list[channelID];
             string cancelContent = $"Syncing #{thisConfig.ChannelName.Split(" > ")[^1]}...\nClick here to pause/cancel";
@@ -95,6 +100,7 @@ namespace ImageFolderSync
                 ChangeMainWindowState(CustomWindowStates.AfterSyncing);
                 return;
             }
+
             string trayHeader = $"Syncing #{thisConfig.ChannelName.Split(" > ")[^1]}...";
             myTray.tbi.ToolTipText = "Syncing " + thisConfig.ChannelName;
             myTray.foldersListitem.Header = trayHeader;
@@ -113,12 +119,20 @@ namespace ImageFolderSync
             int mediaCount = 0;
             int failCount = 0;
 
+            string json;
+            byte[] fileContent;
+
             try
             {
                 await foreach (var msg in messages)
                 {
                     if (_cancelFlag)
                     {
+                        if (myFt != null)
+                        {
+                            myFt.CheckForNewImages(true);
+                        }
+
                         ChangeMainWindowState(CustomWindowStates.AfterSyncing);
                         return;
                     }
@@ -194,8 +208,8 @@ namespace ImageFolderSync
                                 chConfig.UpdateLastMessage(channelID, msg.Timestamp, 1);
                                 config.ChConfig = chConfig;
 
-                                string json = JsonConvert.SerializeObject(config, Formatting.Indented);
-                                byte[] fileContent = Encoding.UTF8.GetBytes(json);
+                                json = JsonConvert.SerializeObject(config, Formatting.Indented);
+                                fileContent = Encoding.UTF8.GetBytes(json);
 
 
                                 Atomic.OverwriteFile("config.json", new MemoryStream(fileContent), "config.json.backup");
@@ -235,8 +249,8 @@ namespace ImageFolderSync
                                     chConfig.UpdateLastMessage(channelID, msg.Timestamp, 1);
                                     config.ChConfig = chConfig;
 
-                                    string json = JsonConvert.SerializeObject(config, Formatting.Indented);
-                                    byte[] fileContent = Encoding.UTF8.GetBytes(json);
+                                    json = JsonConvert.SerializeObject(config, Formatting.Indented);
+                                    fileContent = Encoding.UTF8.GetBytes(json);
 
 
                                     Atomic.OverwriteFile("config.json", new MemoryStream(fileContent), "config.json.backup");
@@ -301,8 +315,8 @@ namespace ImageFolderSync
                                 chConfig.UpdateLastMessage(channelID, msg.Timestamp, 1);
                                 config.ChConfig = chConfig;
 
-                                string json = JsonConvert.SerializeObject(config, Formatting.Indented);
-                                byte[] fileContent = Encoding.UTF8.GetBytes(json);
+                                json = JsonConvert.SerializeObject(config, Formatting.Indented);
+                                fileContent = Encoding.UTF8.GetBytes(json);
 
 
                                 Atomic.OverwriteFile("config.json", new MemoryStream(fileContent), "config.json.backup");
@@ -319,12 +333,18 @@ namespace ImageFolderSync
                         }
                     }
 
+                    _finishedAt = msg.Timestamp;
                 }
 
             }
             catch (Exception mainEx)
             {
                 MessageBox.Show(mainEx.Message);
+
+                if (myFt != null)
+                {
+                    myFt.CheckForNewImages(true);
+                }
             }
 
 
@@ -337,6 +357,23 @@ namespace ImageFolderSync
                 MessageBox.Show($"Downloaded {mediaCount} media from {msgCount} messages.\nFailed to download: {failCount} (e.g. dead gelbooru links)");
             }
 
+            
+            if (_finishedAt != null)
+            {
+                chConfig.UpdateLastMessage(channelID, _finishedAt, 0);
+                config.ChConfig = chConfig;
+
+                json = JsonConvert.SerializeObject(config, Formatting.Indented);
+                fileContent = Encoding.UTF8.GetBytes(json);
+
+                Atomic.OverwriteFile("config.json", new MemoryStream(fileContent), "config.json.backup");
+
+                if (myFt != null)
+                {
+                    myFt.CheckForNewImages(true);
+                }
+            }
+            
             ChangeMainWindowState(CustomWindowStates.AfterSyncing);
 
         }
