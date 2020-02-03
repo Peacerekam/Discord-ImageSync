@@ -78,7 +78,8 @@ namespace ImageFolderSync
 
             if (result == MessageBoxResult.Yes)
             {
-
+                Tiles.Remove(b.CommandParameter.ToString());
+                Counters.Remove(b.CommandParameter.ToString());
                 chConfig.list.Remove(b.CommandParameter.ToString());
                 config.ChConfig = chConfig;
 
