@@ -63,10 +63,6 @@ namespace ImageFolderSync
             _old = itemsPerRow;
         }
 
-        private void UpdateNewImageNotifierForAll()
-        {
-
-        }
 
         public void RemoveFolder(object sender, RoutedEventArgs e)
         {
