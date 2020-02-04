@@ -10,5 +10,9 @@ Compiled portable version is on [github releases page](https://github.com/Peacer
 Requires [.NET Core Runtime](https://dotnet.microsoft.com/download) in order to run. Works only on Windows and with user tokens.<br>
 Using some of (partially modified) [Tyrrrz/DiscordChatExporter](https://github.com/Tyrrrz/DiscordChatExporter)'s parsers and discord api request functions. 
 
-<br>Regular use:<br>
-<img src="https://cdn.discordapp.com/attachments/282208855289495554/668863558980730900/ssssss1.gif"><br><br>Can be used from the taskbar<br><img src="https://cdn.discordapp.com/attachments/282208855289495554/668863915190648832/opt.gif">
+<br>
+### Regular use:
+<br>
+<img src="https://cdn.discordapp.com/attachments/282208855289495554/668863558980730900/ssssss1.gif"><br><br>
+### Can be used from the taskbar
+<br><img src="https://cdn.discordapp.com/attachments/282208855289495554/668863915190648832/opt.gif">
