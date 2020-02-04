@@ -9,8 +9,7 @@ Trying to learn something new. Needs tons of code refactoring as it is my first 
 * gfycat links 
 * etc
 
-
-<br><br>
+<br>
 The app will attempt to get your token automatically (via local storage/leveldb).<br>Token will fail to be grabbed if you have a really old Discord installation, as it stores the token in a diferent way and I couldn't be bothered to handle that. If thats you, then just put the token manually into config.json file or reinstall Discord ¯\\_(ツ)_/¯ (but please note that those leveldb files seem to be generated on app close, rather than startup). I am using some of (partially modified) [Tyrrrz/DiscordChatExporter](https://github.com/Tyrrrz/DiscordChatExporter)'s parsers and discord api request functions. 
 <br> 
 
