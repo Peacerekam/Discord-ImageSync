@@ -4,9 +4,9 @@
 
 
 Trying to learn something new. Needs tons of code refactoring as it is my first non-Unity C# project.<br>ImageSync downloads all **attachments** and **embeds**, that includes stuff like:
-* direct links to images
-* twitter images
-* gfycat videos 
+* direct links to images or videos
+* twitter links
+* gfycat links 
 * etc
 
 
