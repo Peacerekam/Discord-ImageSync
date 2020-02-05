@@ -118,7 +118,7 @@ namespace ImageFolderSync.Helpers
 
         }
 
-        public async void CheckForNewImages(bool forced)
+        public async void CheckForNewImages(bool forced = true)
         {
             int newMedia = 0;
             var dict = MainWindow._instance.Counters;

@@ -129,7 +129,7 @@ namespace ImageFolderSync
                 {
                     if (_cancelFlag)
                     {
-                        if (myFt != null) myFt.CheckForNewImages(true);
+                        if (myFt != null) myFt.CheckForNewImages();
                         
                         ChangeMainWindowState(CustomWindowStates.AfterSyncing);
                         return;
@@ -341,7 +341,7 @@ namespace ImageFolderSync
 
                 if (myFt != null)
                 {
-                    myFt.CheckForNewImages(true);
+                    myFt.CheckForNewImages();
                 }
             }
 
@@ -368,7 +368,7 @@ namespace ImageFolderSync
 
                 if (myFt != null)
                 {
-                    myFt.CheckForNewImages(true);
+                    myFt.CheckForNewImages();
                 }
             }
             

@@ -138,6 +138,7 @@ namespace ImageFolderSync.UI
 
         private void ShowMainWindow(object sender, RoutedEventArgs e)
         {
+            MainWindow._instance.UpdateNewImagesNotification();
             Application.Current.MainWindow.Show();
             Application.Current.MainWindow.WindowState = WindowState.Normal;
             Application.Current.MainWindow.Activate();
@@ -148,6 +149,7 @@ namespace ImageFolderSync.UI
     {
         public void Execute(object parameter)
         {
+            MainWindow._instance.UpdateNewImagesNotification();
             Application.Current.MainWindow.Show();
             Application.Current.MainWindow.WindowState = WindowState.Normal;
             Application.Current.MainWindow.Activate();

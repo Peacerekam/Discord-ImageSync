@@ -95,7 +95,7 @@ namespace ImageFolderSync
         public async Task<int> SearchMediaInChannel(string token, ChannelConfig.Values cfg)
         {
             JToken response;
-            string route = "";
+            string route;
 
             if (cfg.LastMsgChecked == null)
             {

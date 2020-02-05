@@ -15,11 +15,17 @@ namespace ImageFolderSync
         protected override void OnStateChanged(EventArgs e)
         {
             if (this.WindowState == WindowState.Maximized)
+            {
                 this.MaximizeAppButton.Content = FindResource("demaxPic");
+                UpdateNewImagesNotification();
+            }
 
             if (this.WindowState == WindowState.Normal)
+            {
                 this.MaximizeAppButton.Content = FindResource("maxPic");
+                UpdateNewImagesNotification();
 
+            }
             base.OnStateChanged(e);
         }
 

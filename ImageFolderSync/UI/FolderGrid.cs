@@ -25,6 +25,14 @@ namespace ImageFolderSync
             myTray.UpdateTrayFolders();
         }
 
+        public void UpdateNewImagesNotification()
+        {
+            foreach (KeyValuePair<string, FolderTile> entry in Tiles)
+            {
+                entry.Value.CheckForNewImages();
+            }
+        }
+
         private void UpdateFolderGrid(bool forceUpdate = false)
         {
             int itemsPerRow = (int)((float)_folderStackPanel.ActualWidth / 104);
