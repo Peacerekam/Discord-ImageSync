@@ -1,6 +1,6 @@
 # Discord Image Sync 
 
-<img src="https://cdn.discordapp.com/attachments/282208855289495554/668868257071235078/x.png"><br>
+<img src="https://cdn.discordapp.com/attachments/366003455049072642/675811709054615583/unknown.png"><br>
 
 
 Trying to learn something new. Needs tons of code refactoring as it is my first non-Unity C# project.<br>ImageSync downloads all **attachments** and **embeds**, that includes stuff like:
