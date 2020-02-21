@@ -337,7 +337,8 @@ namespace ImageFolderSync
             }
             catch (Exception mainEx)
             {
-                MessageBox.Show(mainEx.Message);
+                //MessageBox.Show(mainEx.Message);
+                MessageBox.Show($"{thisConfig.GuildName}\n{thisConfig.ChannelName}\n\n{mainEx.Message}");
 
                 if (myFt != null)
                 {

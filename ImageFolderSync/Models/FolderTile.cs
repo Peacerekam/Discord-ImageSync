@@ -120,53 +120,61 @@ namespace ImageFolderSync.Helpers
 
         public async void CheckForNewImages(bool forced = true)
         {
-            int newMedia = 0;
-            var dict = MainWindow._instance.Counters;
+            try
+            {
+                int newMedia = 0;
+                var dict = MainWindow._instance.Counters;
 
-            if (forced == false) {
-
-                //var myFt = dict.Keys.Single(tile => tile.MyConfig.ChannelId == MyConfig.ChannelId);
-
-                if (!dict.ContainsKey(MyConfig.ChannelId))
+                if (forced == false)
                 {
-                    DiscordAPI d = new DiscordAPI();
-                    newMedia = await d.SearchMediaInChannel(MainWindow._instance.config.Token, MainWindow._instance.chConfig.list[MyConfig.ChannelId] );
 
-                    // check again cause async stuff
+                    //var myFt = dict.Keys.Single(tile => tile.MyConfig.ChannelId == MyConfig.ChannelId);
+
                     if (!dict.ContainsKey(MyConfig.ChannelId))
                     {
-                        dict.Add(MyConfig.ChannelId, newMedia.ToString());
+                        DiscordAPI d = new DiscordAPI();
+                        newMedia = await d.SearchMediaInChannel(MainWindow._instance.config.Token, MainWindow._instance.chConfig.list[MyConfig.ChannelId]);
+
+                        // check again cause async stuff
+                        if (!dict.ContainsKey(MyConfig.ChannelId))
+                        {
+                            dict.Add(MyConfig.ChannelId, newMedia.ToString());
+                        }
+                    }
+                    else
+                    {
+                        newMedia = int.Parse(dict[MyConfig.ChannelId]);
                     }
                 }
                 else
                 {
-                    newMedia = int.Parse(dict[MyConfig.ChannelId]);
+                    DiscordAPI d = new DiscordAPI();
+                    newMedia = await d.SearchMediaInChannel(MainWindow._instance.config.Token, MainWindow._instance.chConfig.list[MyConfig.ChannelId]);
+
+                    dict[MyConfig.ChannelId] = newMedia.ToString();
+                }
+
+
+                if (newMedia > 0)
+                {
+                    string s = $"{newMedia}";
+
+                    Counter.Text = s;
+                    CounterBg.Width = s.Length == 0 ? 0 : (7 + s.Length * 7);
+
+                    this.ToolTip = $"Estimated around {newMedia} new files to download\n\n2x LMB : Start sync\n1x RMB : Open {MyConfig.SavePath}";
+                }
+                else
+                {
+                    Counter.Text = "";
+                    CounterBg.Width = 0;
+
+                    this.ToolTip = $"This folder seems to be up to date\n\n2x LMB : Start sync\n1x RMB : Open {MyConfig.SavePath}";
                 }
             }
-            else
+            catch (Exception ex)
             {
-                DiscordAPI d = new DiscordAPI();
-                newMedia = await d.SearchMediaInChannel(MainWindow._instance.config.Token, MainWindow._instance.chConfig.list[MyConfig.ChannelId] );
-
-                dict[MyConfig.ChannelId] = newMedia.ToString();
-            }
-
-
-            if (newMedia > 0)
-            {
-                string s = $"{newMedia}";
-
-                Counter.Text = s;
-                CounterBg.Width = s.Length == 0 ? 0 : (7 + s.Length * 7);
-
-                this.ToolTip = $"Estimated around {newMedia} new files to download\n\n2x LMB : Start sync\n1x RMB : Open {MyConfig.SavePath}";
-            }
-            else
-            {
-                Counter.Text = "";
-                CounterBg.Width = 0;
-
-                this.ToolTip = $"This folder seems to be up to date\n\n2x LMB : Start sync\n1x RMB : Open {MyConfig.SavePath}";
+                MessageBox.Show($"{MyConfig.GuildName}\n{MyConfig.ChannelName}\n\n{ex.Message}");
             }
 
         }
