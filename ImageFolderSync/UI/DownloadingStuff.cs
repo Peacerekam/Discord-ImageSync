@@ -404,7 +404,7 @@ namespace ImageFolderSync
 
 
             /*  this obviously looks way better but extensions can be weird
-             *  in theory i already take care of twitter "img.png:large" garbo and "img.png?height=..." stuff, but idk, ill see tomorrow
+             *  in theory i already take care of twitter "img.png:large" garbage and "img.png?height=..." stuff, but idk, ill see later
 
             if (imageExts.Contains(ext.ToLower()))
             {
