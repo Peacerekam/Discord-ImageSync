@@ -29,8 +29,8 @@ Requires [.NET Core Runtime](https://dotnet.microsoft.com/download) in order to 
 
 ## Regular use:
 
-<br><img src="https://cdn.discordapp.com/attachments/282208855289495554/668863558980730900/ssssss1.gif"><br><br>
+<br><img src="https://cdn.discordapp.com/attachments/282208855289495554/668863558980730900/ssssss1.gif?ex=661d5e3b&is=660ae93b&hm=9b3b083616206601f8e2fb96a484beca3ee0d8514c779187003b420272fc99e2&"><br><br>
 
 ## Can be used from the taskbar
 
-<br><img src="https://cdn.discordapp.com/attachments/282208855289495554/668863915190648832/opt.gif">
+<br><img src="https://cdn.discordapp.com/attachments/282208855289495554/668863915190648832/opt.gif?ex=661d5e90&is=660ae990&hm=462f63f1ad01e6952d77059370e1552083c5728796cef8e488a54e7b5d75950a&">
